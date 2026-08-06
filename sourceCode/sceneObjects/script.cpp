@@ -170,7 +170,14 @@ void CScript::addObjectEventData(CCbor* ev)
     if (App::getEventProtocolVersion() <= 3)
         ev->appendKeyInt64(prop(PropScript::detachedScript).name, detachedScript->getObjectHandle());
     else
+    {
         ev->appendKeyHandle(prop(PropScript::detachedScript).name, detachedScript->getObjectHandle());
+        std::string st;
+        auto enum_value = magic_enum::enum_cast<scriptType>(detachedScript->getScriptType());
+        if (enum_value.has_value())
+            st = magic_enum::enum_name(enum_value.value()).data();
+        ev->appendKeyText(prop(PropScript::type).name, st.c_str());
+    }
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // script
     CSceneObject::addObjectEventData(ev);
