@@ -11,6 +11,30 @@
 #include <guiApp.h>
 #endif
 
+// ---------- For backw. compatibility (support of old sim.getEngineXXXParam functions) -------------
+struct OldEngineParams_dummy {
+    std::string name;
+    int type;
+    std::array<int, 5> oldEnums;
+    OldEngineParams_dummy(const std::string& n, int t, std::array<int, 5> v) : name(n), type(t), oldEnums(v) {}
+};
+static const std::vector<OldEngineParams_dummy>& getOldEngineParams_dummy()
+{
+    static const std::vector<OldEngineParams_dummy> params = {
+    {prop(PropDummy::mujocoJointProxyHandle).name,  sim_propertytype_int, { sim_mujoco_dummy_proxyjointid, -1, -1, -1, -1}},
+    {prop(PropDummy::mujocoLimitsEnabled).name,  sim_propertytype_bool, { sim_mujoco_dummy_limited, -1, -1, -1, -1}},
+    {prop(PropDummy::mujocoLimitsRange).name,  sim_propertytype_floatarray, { sim_mujoco_dummy_range1, sim_mujoco_dummy_range2, -1, -1, -1}},
+    {prop(PropDummy::mujocoLimitsSolimp).name,  sim_propertytype_floatarray, { sim_mujoco_dummy_solimplimit1, sim_mujoco_dummy_solimplimit2, sim_mujoco_dummy_solimplimit3, sim_mujoco_dummy_solimplimit4, sim_mujoco_dummy_solimplimit5}},
+    {prop(PropDummy::mujocoLimitsSolref).name,  sim_propertytype_floatarray, { sim_mujoco_dummy_solreflimit1, sim_mujoco_dummy_solreflimit2, -1, -1, -1}},
+    {prop(PropDummy::mujocoMargin).name,  sim_propertytype_float, { sim_mujoco_dummy_margin, -1, -1, -1, -1}},
+    {prop(PropDummy::mujocoSpringDamping).name,  sim_propertytype_float, { sim_mujoco_dummy_damping, -1, -1, -1, -1}},
+    {prop(PropDummy::mujocoSpringLength).name,  sim_propertytype_float, { sim_mujoco_dummy_springlength, -1, -1, -1, -1}},
+    {prop(PropDummy::mujocoSpringStiffness).name,  sim_propertytype_float, { sim_mujoco_dummy_stiffness, -1, -1, -1, -1}},
+    };
+    return params;
+}
+// --------------------------------------------------------------------------------------------------
+
 CDummy::CDummy()
 {
     _objectTypeStr = "dummy";
@@ -1818,22 +1842,23 @@ void CDummy::_sendEngineString(CCbor* eev /*= nullptr*/)
 std::string CDummy::_enumToProperty(int oldEnum, int type, int& indexWithArrays) const
 {
     std::string retVal;
-    for (size_t i = 0; i < allProps_dummy.size(); i++)
+    auto oldEngineParams = getOldEngineParams_dummy();
+    for (size_t i = 0; i < oldEngineParams.size(); i++)
     {
         for (size_t j = 0; j < 5; j++)
         {
-            int en = allProps_dummy[i].oldEnums[j];
+            int en = oldEngineParams[i].oldEnums[j];
             if (en == -1)
                 break;
             else if (en == oldEnum)
             {
-                if (type == allProps_dummy[i].type)
+                if (type == oldEngineParams[i].type)
                 {
-                    if ((j > 0) || (allProps_dummy[i].oldEnums[j + 1] != -1))
+                    if ((j > 0) || (oldEngineParams[i].oldEnums[j + 1] != -1))
                         indexWithArrays = int(j);
                     else
                         indexWithArrays = -1;
-                    retVal = allProps_dummy[i].name;
+                    retVal = oldEngineParams[i].name;
                 }
                 break;
             }

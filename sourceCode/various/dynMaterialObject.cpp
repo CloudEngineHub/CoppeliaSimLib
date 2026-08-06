@@ -8,6 +8,101 @@
 
 int CDynMaterialObject::_nextUniqueID = 0;
 
+// ---------- For backw. compatibility (support of old sim.getEngineXXXParam functions) -------------
+struct OldEngineParams_shape {
+    std::string name;
+    int type;
+    std::array<int, 5> oldEnums;
+    OldEngineParams_shape(const std::string& n, int t, std::array<int, 5> v) : name(n), type(t), oldEnums(v) {}
+};
+static const std::vector<OldEngineParams_shape>& getOldEngineParams_shape()
+{
+    static const std::vector<OldEngineParams_shape> params = {
+    {prop(PropShape::bulletAngularDamping).name,  sim_propertytype_float, { sim_bullet_body_angulardamping, -1, -1, -1, -1}},
+    {prop(PropShape::bulletAutoShrinkConvex).name,  sim_propertytype_bool, { sim_bullet_body_autoshrinkconvex, -1, -1, -1, -1}},
+    {prop(PropShape::bulletNonDefaultCollisionMarginConvex).name,  sim_propertytype_bool, { sim_bullet_body_usenondefaultcollisionmarginconvex, -1, -1, -1, -1}},
+    {prop(PropShape::bulletNonDefaultCollisionMarginFactorConvex).name,  sim_propertytype_float, { sim_bullet_body_nondefaultcollisionmargingfactorconvex, -1, -1, -1, -1}},
+    {prop(PropShape::bulletNonDefaultCollisionMargin).name,  sim_propertytype_bool, { sim_bullet_body_usenondefaultcollisionmargin, -1, -1, -1, -1}},
+    {prop(PropShape::bulletNonDefaultCollisionMarginFactor).name,  sim_propertytype_float, { sim_bullet_body_nondefaultcollisionmargingfactor, -1, -1, -1, -1}},
+    {prop(PropShape::bulletFriction).name,  sim_propertytype_float, { sim_bullet_body_friction, -1, -1, -1, -1}},
+    {prop(PropShape::bulletFriction0).name,  sim_propertytype_float, { sim_bullet_body_oldfriction, -1, -1, -1, -1}},
+    {prop(PropShape::bulletLinearDamping).name,  sim_propertytype_float, { sim_bullet_body_lineardamping, -1, -1, -1, -1}},
+    {prop(PropShape::bulletRestitution).name,  sim_propertytype_float, { sim_bullet_body_restitution, -1, -1, -1, -1}},
+    {prop(PropShape::bulletSticky).name,  sim_propertytype_bool, { sim_bullet_body_sticky, -1, -1, -1, -1}},
+    {prop(PropShape::mujocoCondim).name,  sim_propertytype_int, { sim_mujoco_body_condim, -1, -1, -1, -1}},
+    {prop(PropShape::mujocoFriction).name,  sim_propertytype_floatarray, { sim_mujoco_body_friction1, sim_mujoco_body_friction2, sim_mujoco_body_friction3, -1, -1}},
+    {prop(PropShape::mujocoMargin).name,  sim_propertytype_float, { sim_mujoco_body_margin, -1, -1, -1, -1}},
+    {prop(PropShape::mujocoPriority).name,  sim_propertytype_int, { sim_mujoco_body_priority, -1, -1, -1, -1}},
+    {prop(PropShape::mujocoSolimp).name,  sim_propertytype_floatarray, { sim_mujoco_body_solimp1, sim_mujoco_body_solimp2, sim_mujoco_body_solimp3, sim_mujoco_body_solimp4, sim_mujoco_body_solimp5}},
+    {prop(PropShape::mujocoSolmix).name,  sim_propertytype_float, { sim_mujoco_body_solmix, -1, -1, -1, -1}},
+    {prop(PropShape::mujocoSolref).name,  sim_propertytype_floatarray, { sim_mujoco_body_solref1, sim_mujoco_body_solref2, -1, -1, -1}},
+    {prop(PropShape::newtonAngularDrag).name,  sim_propertytype_float, { sim_newton_body_angulardrag, -1, -1, -1, -1}},
+    {prop(PropShape::newtonFastMoving).name,  sim_propertytype_bool, { sim_newton_body_fastmoving, -1, -1, -1, -1}},
+    {prop(PropShape::newtonKineticFriction).name,  sim_propertytype_float, { sim_newton_body_kineticfriction, -1, -1, -1, -1}},
+    {prop(PropShape::newtonLinearDrag).name,  sim_propertytype_float, { sim_newton_body_lineardrag, -1, -1, -1, -1}},
+    {prop(PropShape::newtonRestitution).name,  sim_propertytype_float, { sim_newton_body_restitution, -1, -1, -1, -1}},
+    {prop(PropShape::newtonStaticFriction).name,  sim_propertytype_float, { sim_newton_body_staticfriction, -1, -1, -1, -1}},
+    {prop(PropShape::odeAngularDamping).name,  sim_propertytype_float, { sim_ode_body_angulardamping, -1, -1, -1, -1}},
+    {prop(PropShape::odeFriction).name,  sim_propertytype_float, { sim_ode_body_friction, -1, -1, -1, -1}},
+    {prop(PropShape::odeLinearDamping).name,  sim_propertytype_float, { sim_ode_body_lineardamping, -1, -1, -1, -1}},
+    {prop(PropShape::odeMaxContacts).name,  sim_propertytype_int, { sim_ode_body_maxcontacts, -1, -1, -1, -1}},
+    {prop(PropShape::odeSoftCfm).name,  sim_propertytype_float, { sim_ode_body_softcfm, -1, -1, -1, -1}},
+    {prop(PropShape::odeSoftErp).name,  sim_propertytype_float, { sim_ode_body_softerp, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAdhesiveForce).name,  sim_propertytype_float, { sim_vortex_body_adhesiveforce, -1, -1, -1, -1}},
+    {prop(PropShape::vortexNormalAngularAxisSameAsPrimaryAngularAxis).name,  sim_propertytype_bool, { sim_vortex_body_normangaxissameasprimangaxis, -1, -1, -1, -1}},
+    {prop(PropShape::vortexNormalAngularAxisFrictionModel).name,  sim_propertytype_int, { sim_vortex_body_normalangularaxisfrictionmodel, -1, -1, -1, -1}},
+    {prop(PropShape::vortexNormalAngularAxisFriction).name,  sim_propertytype_float, { sim_vortex_body_normalangularaxisfriction, -1, -1, -1, -1}},
+    {prop(PropShape::vortexNormalAngularAxisSlide).name,  sim_propertytype_float, { sim_vortex_body_normalangularaxisslide, -1, -1, -1, -1}},
+    {prop(PropShape::vortexNormalAngularAxisSlip).name,  sim_propertytype_float, { sim_vortex_body_normalangularaxisslip, -1, -1, -1, -1}},
+    {prop(PropShape::vortexNormalAngularAxisStaticFrictionScale).name,  sim_propertytype_float, { sim_vortex_body_normalangularaxisstaticfrictionscale, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryAngularAxisFrictionModel).name,  sim_propertytype_int, { sim_vortex_body_primangulararaxisfrictionmodel, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryAngularAxisFriction).name,  sim_propertytype_float, { sim_vortex_body_primangularaxisfriction, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryAngularAxisSlide).name,  sim_propertytype_float, { sim_vortex_body_primangularaxisslide, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryAngularAxisSlip).name,  sim_propertytype_float, { sim_vortex_body_primangularaxisslip, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryAngularAxisStaticFrictionScale).name,  sim_propertytype_float, { sim_vortex_body_primangularaxisstaticfrictionscale, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryAngularAxisSameAsPrimaryAngularAxis).name,  sim_propertytype_bool, { sim_vortex_body_secangaxissameasprimangaxis, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryAngularAxisFrictionModel).name,  sim_propertytype_int, { sim_vortex_body_secangularaxisfrictionmodel, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryAngularAxisFriction).name,  sim_propertytype_float, { sim_vortex_body_secangularaxisfriction, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryAngularAxisSlide).name,  sim_propertytype_float, { sim_vortex_body_secangularaxisslide, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryAngularAxisSlip).name,  sim_propertytype_float, { sim_vortex_body_secangularaxisslip, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryAngularAxisStaticFrictionScale).name,  sim_propertytype_float, { sim_vortex_body_secangularaxisstaticfrictionscale, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAngularVelocityDamping).name,  sim_propertytype_float, { sim_vortex_body_angularvelocitydamping, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAutoAngularDamping).name,  sim_propertytype_bool, { sim_vortex_body_autoangulardamping, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAutoAngularDampingTensionRatio).name,  sim_propertytype_float, { sim_vortex_body_autoangulardampingtensionratio, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAutoSleepAngularAccelerationThreshold).name,  sim_propertytype_float, { sim_vortex_body_autosleepangularaccelthreshold, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAutoSleepAngularSpeedThreshold).name,  sim_propertytype_float, { sim_vortex_body_autosleepangularspeedthreshold, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAutoSleepLinearAccelerationThreshold).name,  sim_propertytype_float, { sim_vortex_body_autosleeplinearaccelthreshold, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAutoSleepLinearSpeedThreshold).name,  sim_propertytype_float, { sim_vortex_body_autosleeplinearspeedthreshold, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAutoSleepStepLiveThreshold).name,  sim_propertytype_int, { sim_vortex_body_autosleepsteplivethreshold, -1, -1, -1, -1}},
+    {prop(PropShape::vortexAutoSlip).name,  sim_propertytype_bool, { sim_vortex_body_autoslip, -1, -1, -1, -1}},
+    {prop(PropShape::vortexCompliance).name,  sim_propertytype_float, { sim_vortex_body_compliance, -1, -1, -1, -1}},
+    {prop(PropShape::vortexConvexShapesAsRandom).name,  sim_propertytype_bool, { sim_vortex_body_convexshapesasrandom, -1, -1, -1, -1}},
+    {prop(PropShape::vortexDamping).name,  sim_propertytype_float, { sim_vortex_body_damping, -1, -1, -1, -1}},
+    {prop(PropShape::vortexFastMoving).name,  sim_propertytype_bool, { sim_vortex_body_fastmoving, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryLinearAxisFrictionModel).name,  sim_propertytype_int, { sim_vortex_body_primlinearaxisfrictionmodel, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryLinearAxisFriction).name,  sim_propertytype_float, { sim_vortex_body_primlinearaxisfriction, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryLinearAxisSlide).name,  sim_propertytype_float, { sim_vortex_body_primlinearaxisslide, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryLinearAxisSlip).name,  sim_propertytype_float, { sim_vortex_body_primlinearaxisslip, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryLinearAxisStaticFrictionScale).name,  sim_propertytype_float, { sim_vortex_body_primlinearaxisstaticfrictionscale, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimaryAxisVector).name,  sim_propertytype_vector3, { sim_vortex_body_primaxisvectorx, sim_vortex_body_primaxisvectory, sim_vortex_body_primaxisvectorz, -1, -1}},
+    {prop(PropShape::vortexSecondaryLinearAxisSameAsPrimaryLinearAxis).name,  sim_propertytype_bool, { sim_vortex_body_seclinaxissameasprimlinaxis, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryLinearAxisFrictionModel).name,  sim_propertytype_int, { sim_vortex_body_seclinearaxisfrictionmodel, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryLinearAxisFriction).name,  sim_propertytype_float, { sim_vortex_body_seclinearaxisfriction, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryLinearAxisSlide).name,  sim_propertytype_float, { sim_vortex_body_seclinearaxisslide, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryLinearAxisSlip).name,  sim_propertytype_float, { sim_vortex_body_seclinearaxisslip, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSecondaryLinearAxisStaticFrictionScale).name,  sim_propertytype_float, { sim_vortex_body_seclinearaxisstaticfrictionscale, -1, -1, -1, -1}},
+    {prop(PropShape::vortexLinearVelocityDamping).name,  sim_propertytype_float, { sim_vortex_body_linearvelocitydamping, -1, -1, -1, -1}},
+    {prop(PropShape::vortexMaterialUniqueId).name,  sim_propertytype_int, { sim_vortex_body_materialuniqueid, -1, -1, -1, -1}},
+    {prop(PropShape::vortexPrimitiveShapesAsConvex).name,  sim_propertytype_bool, { sim_vortex_body_pureshapesasconvex, -1, -1, -1, -1}},
+    {prop(PropShape::vortexRandomShapesAsTerrain).name,  sim_propertytype_bool, { sim_vortex_body_randomshapesasterrain, -1, -1, -1, -1}},
+    {prop(PropShape::vortexRestitution).name,  sim_propertytype_float, { sim_vortex_body_restitution, -1, -1, -1, -1}},
+    {prop(PropShape::vortexRestitutionThreshold).name,  sim_propertytype_float, { sim_vortex_body_restitutionthreshold, -1, -1, -1, -1}},
+    {prop(PropShape::vortexSkinThickness).name,  sim_propertytype_float, { sim_vortex_body_skinthickness, -1, -1, -1, -1}},
+    };
+    return params;
+}
+// ---------------------------------------------------------------------------------------------------
+
 CDynMaterialObject::CDynMaterialObject()
 {
     _setDefaultParameters();
@@ -1543,22 +1638,23 @@ void CDynMaterialObject::_fixVortexInfVals()
 std::string CDynMaterialObject::_enumToProperty(int oldEnum, int type, int& indexWithArrays) const
 {
     std::string retVal;
-    for (size_t i = 0; i < allProps_shape.size(); i++)
+    auto oldEngineParams = getOldEngineParams_shape();
+    for (size_t i = 0; i < oldEngineParams.size(); i++)
     {
         for (size_t j = 0; j < 5; j++)
         {
-            int en = allProps_shape[i].oldEnums[j];
+            int en = oldEngineParams[i].oldEnums[j];
             if (en == -1)
                 break;
             else if (en == oldEnum)
             {
-                if (type == allProps_shape[i].type)
+                if (type == oldEngineParams[i].type)
                 {
-                    if ((j > 0) || (allProps_shape[i].oldEnums[j + 1] != -1))
+                    if ((j > 0) || (oldEngineParams[i].oldEnums[j + 1] != -1))
                         indexWithArrays = int(j);
                     else
                         indexWithArrays = -1;
-                    retVal = allProps_shape[i].name;
+                    retVal = oldEngineParams[i].name;
                 }
                 break;
             }

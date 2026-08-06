@@ -7,7 +7,7 @@
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_customObjectClass{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     CUSTOMOBJECTCLASS_PROPERTIES
 #undef FUNCX
 };
@@ -19,7 +19,7 @@ const SProperty& prop(PropCustomObjectClass p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_customObject{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     CUSTOMOBJECT_PROPERTIES
 #undef FUNCX
 };
@@ -31,7 +31,7 @@ const SProperty& prop(PropCustomObject p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_customSceneObjectClass{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     CUSTOMSCENEOBJECTCLASS_PROPERTIES
 #undef FUNCX
 };
@@ -43,7 +43,7 @@ const SProperty& prop(PropCustomSceneObjectClass p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_customSceneObject{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     CUSTOMSCENEOBJECT_PROPERTIES
 #undef FUNCX
 };
@@ -55,7 +55,7 @@ const SProperty& prop(PropCustomSceneObject p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_obj{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     OBJECT_PROPERTIES
 #undef FUNCX
 };
@@ -67,7 +67,7 @@ const SProperty& prop(PropObject p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_app{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     APP_PROPERTIES
 #undef FUNCX
 };
@@ -79,7 +79,7 @@ const SProperty& prop(PropApp p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_detachedScript{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     DETACHEDSCRIPT_PROPERTIES
 #undef FUNCX
 };
@@ -91,7 +91,7 @@ const SProperty& prop(PropDetachedScript p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_stack{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     STACK_PROPERTIES
 #undef FUNCX
 };
@@ -103,7 +103,7 @@ const SProperty& prop(PropStack p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_collection{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     COLLECTION_PROPERTIES
 #undef FUNCX
 };
@@ -115,7 +115,7 @@ const SProperty& prop(PropCollection p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_drawingObj{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     DRAWINGOBJECT_PROPERTIES
 #undef FUNCX
 };
@@ -127,7 +127,7 @@ const SProperty& prop(PropDrawingObject p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_col{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     COLOR_PROPERTIES
 #undef FUNCX
 };
@@ -139,7 +139,7 @@ const SProperty& prop(PropColor p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_scene{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     SCENE_PROPERTIES
 #undef FUNCX
 };
@@ -151,7 +151,7 @@ const SProperty& prop(PropScene p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_mesh{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     MESH_PROPERTIES
 #undef FUNCX
 };
@@ -163,7 +163,7 @@ const SProperty& prop(PropMesh p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_sceneObject{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     SCENEOBJECT_PROPERTIES
 #undef FUNCX
 };
@@ -175,7 +175,7 @@ const SProperty& prop(PropSceneObject p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_shape{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     SHAPE_PROPERTIES
 #undef FUNCX
 };
@@ -187,7 +187,7 @@ const SProperty& prop(PropShape p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_camera{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     CAMERA_PROPERTIES
 #undef FUNCX
 };
@@ -199,7 +199,7 @@ const SProperty& prop(PropCamera p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_dummy{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     DUMMY_PROPERTIES
 #undef FUNCX
 };
@@ -211,7 +211,7 @@ const SProperty& prop(PropDummy p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_forceSensor{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     FORCESENSOR_PROPERTIES
 #undef FUNCX
 };
@@ -223,7 +223,7 @@ const SProperty& prop(PropForceSensor p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_graph{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     GRAPH_PROPERTIES
 #undef FUNCX
 };
@@ -235,7 +235,7 @@ const SProperty& prop(PropGraph p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_joint{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     JOINT_PROPERTIES
 #undef FUNCX
 };
@@ -247,7 +247,7 @@ const SProperty& prop(PropJoint p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_light{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     LIGHT_PROPERTIES
 #undef FUNCX
 };
@@ -259,7 +259,7 @@ const SProperty& prop(PropLight p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_ocTree{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     OCTREE_PROPERTIES
 #undef FUNCX
 };
@@ -271,7 +271,7 @@ const SProperty& prop(PropOctree p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_pointCloud{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     POINTCLOUD_PROPERTIES
 #undef FUNCX
 };
@@ -283,7 +283,7 @@ const SProperty& prop(PropPointCloud p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_proximitySensor{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     PROXIMITYSENSOR_PROPERTIES
 #undef FUNCX
 };
@@ -295,7 +295,7 @@ const SProperty& prop(PropProximitySensor p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_visionSensor{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     VISIONSENSOR_PROPERTIES
 #undef FUNCX
 };
@@ -307,7 +307,7 @@ const SProperty& prop(PropVisionSensor p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_script{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     SCRIPT_PROPERTIES
 #undef FUNCX
 };
@@ -319,7 +319,7 @@ const SProperty& prop(PropScript p)
 
 // ----------------------------------------------------------------------------------------------
 const std::vector<SProperty> allProps_marker{
-#define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) SProperty{str, v1, v2, t1, {w0, w1, w2, w3, w4}},
+#define FUNCX(name, str, v1, v2, t1) SProperty{str, v1, v2, t1},
     MARKER_PROPERTIES
 #undef FUNCX
 };

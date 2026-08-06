@@ -11,6 +11,98 @@
 #include <jointRendering.h>
 #endif
 
+// ---------- For backw. compatibility (support of old sim.getEngineXXXParam functions) -------------
+struct OldEngineParams_joint {
+    std::string name;
+    int type;
+    std::array<int, 5> oldEnums;
+    OldEngineParams_joint(const std::string& n, int t, std::array<int, 5> v) : name(n), type(t), oldEnums(v) {}
+};
+static const std::vector<OldEngineParams_joint>& getOldEngineParams_joint()
+{
+    static const std::vector<OldEngineParams_joint> params = {
+    {prop(PropJoint::bulletNormalCfm).name,  sim_propertytype_float, { sim_bullet_joint_normalcfm, -1, -1, -1, -1}},
+    {prop(PropJoint::bulletPosPid).name,  sim_propertytype_floatarray, { sim_bullet_joint_pospid1, sim_bullet_joint_pospid2, sim_bullet_joint_pospid3, -1, -1}},
+    {prop(PropJoint::bulletStopCfm).name,  sim_propertytype_float, { sim_bullet_joint_stopcfm, -1, -1, -1, -1}},
+    {prop(PropJoint::bulletStopErp).name,  sim_propertytype_float, { sim_bullet_joint_stoperp, -1, -1, -1, -1}},
+    {prop(PropJoint::mujocoArmature).name,  sim_propertytype_float, { sim_mujoco_joint_armature, -1, -1, -1, -1}},
+    {prop(PropJoint::mujocoDependencyPolyCoef).name,  sim_propertytype_floatarray, { sim_mujoco_joint_polycoef1, sim_mujoco_joint_polycoef2, sim_mujoco_joint_polycoef3, sim_mujoco_joint_polycoef4, sim_mujoco_joint_polycoef5}},
+    {prop(PropJoint::mujocoFrictionLoss).name,  sim_propertytype_float, { sim_mujoco_joint_frictionloss, -1, -1, -1, -1}},
+    {prop(PropJoint::mujocoFrictionSolImp).name,  sim_propertytype_floatarray, { sim_mujoco_joint_solimpfriction1, sim_mujoco_joint_solimpfriction2, sim_mujoco_joint_solimpfriction3, sim_mujoco_joint_solimpfriction4, sim_mujoco_joint_solimpfriction5}},
+    {prop(PropJoint::mujocoFrictionSolRef).name,  sim_propertytype_floatarray, { sim_mujoco_joint_solreffriction1, sim_mujoco_joint_solreffriction2, -1, -1, -1}},
+    {prop(PropJoint::mujocoLimitsSolImp).name,  sim_propertytype_floatarray, { sim_mujoco_joint_solimplimit1, sim_mujoco_joint_solimplimit2, sim_mujoco_joint_solimplimit3, sim_mujoco_joint_solimplimit4, sim_mujoco_joint_solimplimit5}},
+    {prop(PropJoint::mujocoLimitsSolRef).name,  sim_propertytype_floatarray, { sim_mujoco_joint_solreflimit1, sim_mujoco_joint_solreflimit2, -1, -1, -1}},
+    {prop(PropJoint::mujocoMargin).name,  sim_propertytype_float, { sim_mujoco_joint_margin, -1, -1, -1, -1}},
+    {prop(PropJoint::mujocoPosPid).name,  sim_propertytype_floatarray, { sim_mujoco_joint_pospid1, sim_mujoco_joint_pospid2, sim_mujoco_joint_pospid3, -1, -1}},
+    {prop(PropJoint::mujocoSpringDamping).name,  sim_propertytype_float, { sim_mujoco_joint_damping, -1, -1, -1, -1}},
+    {prop(PropJoint::mujocoSpringRef).name,  sim_propertytype_float, { sim_mujoco_joint_springref, -1, -1, -1, -1}},
+    {prop(PropJoint::mujocoSpringDamper).name,  sim_propertytype_floatarray, { sim_mujoco_joint_springdamper1, sim_mujoco_joint_springdamper2, -1, -1, -1}},
+    {prop(PropJoint::mujocoSpringStiffness).name,  sim_propertytype_float, { sim_mujoco_joint_stiffness, -1, -1, -1, -1}},
+    {prop(PropJoint::newtonPosPid).name,  sim_propertytype_floatarray, { sim_newton_joint_pospid1, sim_newton_joint_pospid2, sim_newton_joint_pospid3, -1, -1}},
+    {prop(PropJoint::odeBounce).name,  sim_propertytype_float, { sim_ode_joint_bounce, -1, -1, -1, -1}},
+    {prop(PropJoint::odeFudgeFactor).name,  sim_propertytype_float, { sim_ode_joint_fudgefactor, -1, -1, -1, -1}},
+    {prop(PropJoint::odeNormalCfm).name,  sim_propertytype_float, { sim_ode_joint_normalcfm, -1, -1, -1, -1}},
+    {prop(PropJoint::odePosPid).name,  sim_propertytype_floatarray, { sim_ode_joint_pospid1, sim_ode_joint_pospid2, sim_ode_joint_pospid3, -1, -1}},
+    {prop(PropJoint::odeStopCfm).name,  sim_propertytype_float, { sim_ode_joint_stopcfm, -1, -1, -1, -1}},
+    {prop(PropJoint::odeStopErp).name,  sim_propertytype_float, { sim_ode_joint_stoperp, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexAxisFrictionEnabled).name,  sim_propertytype_bool, { sim_vortex_joint_motorfrictionenabled, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexAxisFrictionLoss).name,  sim_propertytype_float, { sim_vortex_joint_motorconstraintfrictionloss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexAxisFrictionMaxForce).name,  sim_propertytype_float, { sim_vortex_joint_motorconstraintfrictionmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexAxisFrictionProportional).name,  sim_propertytype_bool, { sim_vortex_joint_proportionalmotorfriction, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexAxisFrictionCoeff).name,  sim_propertytype_float, { sim_vortex_joint_motorconstraintfrictioncoeff, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexLowerLimitDamping).name,  sim_propertytype_float, { sim_vortex_joint_lowerlimitdamping, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexLowerLimitMaxForce).name,  sim_propertytype_float, { sim_vortex_joint_lowerlimitmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexLowerLimitRestitution).name,  sim_propertytype_float, { sim_vortex_joint_lowerlimitrestitution, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexLowerLimitStiffness).name,  sim_propertytype_float, { sim_vortex_joint_lowerlimitstiffness, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexUpperLimitDamping).name,  sim_propertytype_float, { sim_vortex_joint_upperlimitdamping, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexUpperLimitMaxForce).name,  sim_propertytype_float, { sim_vortex_joint_upperlimitmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexUpperLimitRestitution).name,  sim_propertytype_float, { sim_vortex_joint_upperlimitrestitution, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexUpperLimitStiffness).name,  sim_propertytype_float, { sim_vortex_joint_upperlimitstiffness, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexFrictionEnabledBits).name,  sim_propertytype_int, { sim_vortex_joint_frictionenabledbc, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexFrictionProportionalBits).name,  sim_propertytype_int, { sim_vortex_joint_frictionproportionalbc, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexPosPid).name,  sim_propertytype_floatarray, { sim_vortex_joint_pospid1, sim_vortex_joint_pospid2, sim_vortex_joint_pospid3, -1, -1}},
+    {prop(PropJoint::vortexRelaxationEnabledBits).name,  sim_propertytype_int, { sim_vortex_joint_relaxationenabledbc, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisOrientFrictionCoeff).name,  sim_propertytype_float, { sim_vortex_joint_a0frictioncoeff, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisOrientFrictionLoss).name,  sim_propertytype_float, { sim_vortex_joint_a0frictionloss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisOrientFrictionMaxTorque).name,  sim_propertytype_float, { sim_vortex_joint_a0frictionmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisOrientRelaxDamping).name,  sim_propertytype_float, { sim_vortex_joint_a0damping, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisOrientRelaxLoss).name,  sim_propertytype_float, { sim_vortex_joint_a0loss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisOrientRelaxStiffness).name,  sim_propertytype_float, { sim_vortex_joint_a0stiffness, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisPosFrictionCoeff).name,  sim_propertytype_float, { sim_vortex_joint_p0frictioncoeff, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisPosFrictionLoss).name,  sim_propertytype_float, { sim_vortex_joint_p0frictionloss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisPosFrictionMaxForce).name,  sim_propertytype_float, { sim_vortex_joint_p0frictionmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisPosRelaxationDamping).name,  sim_propertytype_float, { sim_vortex_joint_p0damping, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisPosRelaxationLoss).name,  sim_propertytype_float, { sim_vortex_joint_p0loss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexXAxisPosRelaxationStiffness).name,  sim_propertytype_float, { sim_vortex_joint_p0stiffness, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisOrientFrictionCoeff).name,  sim_propertytype_float, { sim_vortex_joint_a1frictioncoeff, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisOrientFrictionLoss).name,  sim_propertytype_float, { sim_vortex_joint_a1frictionloss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisOrientFrictionMaxTorque).name,  sim_propertytype_float, { sim_vortex_joint_a1frictionmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisOrientRelaxDamping).name,  sim_propertytype_float, { sim_vortex_joint_a1damping, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisOrientRelaxLoss).name,  sim_propertytype_float, { sim_vortex_joint_a1loss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisOrientRelaxStiffness).name,  sim_propertytype_float, { sim_vortex_joint_a1stiffness, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisPosFrictionCoeff).name,  sim_propertytype_float, { sim_vortex_joint_p1frictioncoeff, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisPosFrictionLoss).name,  sim_propertytype_float, { sim_vortex_joint_p1frictionloss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisPosFrictionMaxForce).name,  sim_propertytype_float, { sim_vortex_joint_p1frictionmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisPosRelaxationDamping).name,  sim_propertytype_float, { sim_vortex_joint_p1damping, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisPosRelaxationLoss).name,  sim_propertytype_float, { sim_vortex_joint_p1loss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexYAxisPosRelaxationStiffness).name,  sim_propertytype_float, { sim_vortex_joint_p1stiffness, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisOrientFrictionCoeff).name,  sim_propertytype_float, { sim_vortex_joint_a2frictioncoeff, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisOrientFrictionLoss).name,  sim_propertytype_float, { sim_vortex_joint_a2frictionloss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisOrientFrictionMaxTorque).name,  sim_propertytype_float, { sim_vortex_joint_a2frictionmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisOrientRelaxDamping).name,  sim_propertytype_float, { sim_vortex_joint_a2damping, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisOrientRelaxLoss).name,  sim_propertytype_float, { sim_vortex_joint_a2loss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisOrientRelaxStiffness).name,  sim_propertytype_float, { sim_vortex_joint_a2stiffness, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisPosFrictionCoeff).name,  sim_propertytype_float, { sim_vortex_joint_p2frictioncoeff, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisPosFrictionLoss).name,  sim_propertytype_float, { sim_vortex_joint_p2frictionloss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisPosFrictionMaxForce).name,  sim_propertytype_float, { sim_vortex_joint_p2frictionmaxforce, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisPosRelaxationDamping).name,  sim_propertytype_float, { sim_vortex_joint_p2damping, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisPosRelaxationLoss).name,  sim_propertytype_float, { sim_vortex_joint_p2loss, -1, -1, -1, -1}},
+    {prop(PropJoint::vortexZAxisPosRelaxationStiffness).name,  sim_propertytype_float, { sim_vortex_joint_p2stiffness, -1, -1, -1, -1}},
+    };
+    return params;
+}
+// --------------------------------------------------------------------------------------------------
+
 CJoint::CJoint()
 {
     _commonInit();
@@ -6259,22 +6351,23 @@ void CJoint::_sendEngineString(CCbor* eev /*= nullptr*/)
 std::string CJoint::_enumToProperty(int oldEnum, int type, int& indexWithArrays) const
 {
     std::string retVal;
-    for (size_t i = 0; i < allProps_joint.size(); i++)
+    auto oldEngineParams = getOldEngineParams_joint();
+    for (size_t i = 0; i < oldEngineParams.size(); i++)
     {
         for (size_t j = 0; j < 5; j++)
         {
-            int en = allProps_joint[i].oldEnums[j];
+            int en = oldEngineParams[i].oldEnums[j];
             if (en == -1)
                 break;
             else if (en == oldEnum)
             {
-                if (type == allProps_joint[i].type)
+                if (type == oldEngineParams[i].type)
                 {
-                    if ((j > 0) || (allProps_joint[i].oldEnums[j + 1] != -1))
+                    if ((j > 0) || (oldEngineParams[i].oldEnums[j + 1] != -1))
                         indexWithArrays = int(j);
                     else
                         indexWithArrays = -1;
-                    retVal = allProps_joint[i].name;
+                    retVal = oldEngineParams[i].name;
                 }
                 break;
             }

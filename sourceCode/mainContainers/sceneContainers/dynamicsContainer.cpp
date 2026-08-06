@@ -11,6 +11,75 @@
 #include <guiApp.h>
 #endif
 
+// ---------- For backw. compatibility (support of old sim.getEngineXXXParam functions) -------------
+struct OldEngineParams_scene {
+    std::string name;
+    int type;
+    std::array<int, 5> oldEnums;
+    OldEngineParams_scene(const std::string& n, int t, std::array<int, 5> v) : name(n), type(t), oldEnums(v) {}
+};
+static const std::vector<OldEngineParams_scene>& getOldEngineParams_scene()
+{
+    static const std::vector<OldEngineParams_scene> params = {
+        {prop(PropScene::bulletCollMarginScaling).name,  sim_propertytype_float, { sim_bullet_global_collisionmarginfactor, -1, -1, -1, -1}},
+        {prop(PropScene::bulletComputeInertias).name,  sim_propertytype_bool, { sim_bullet_global_computeinertias, -1, -1, -1, -1}},
+        {prop(PropScene::bulletInternalScalingFull).name,  sim_propertytype_bool, { sim_bullet_global_fullinternalscaling, -1, -1, -1, -1}},
+        {prop(PropScene::bulletInternalScalingScaling).name,  sim_propertytype_float, { sim_bullet_global_internalscalingfactor, -1, -1, -1, -1}},
+        {prop(PropScene::bulletIterations).name,  sim_propertytype_int, { sim_bullet_global_constraintsolvingiterations, -1, -1, -1, -1}},
+        {prop(PropScene::bulletSolver).name,  sim_propertytype_int, { sim_bullet_global_constraintsolvertype, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoBalanceInertias).name,  sim_propertytype_bool, { sim_mujoco_global_balanceinertias, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoBoundInertia).name,  sim_propertytype_float, { sim_mujoco_global_boundinertia, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoBoundMass).name,  sim_propertytype_float, { sim_mujoco_global_boundmass, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoComputeInertias).name,  sim_propertytype_bool, { sim_mujoco_global_computeinertias, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoCone).name,  sim_propertytype_int, { sim_mujoco_global_cone, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoContactParamsMargin).name,  sim_propertytype_float, { sim_mujoco_global_overridemargin, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoContactParamsOverride).name,  sim_propertytype_bool, { sim_mujoco_global_overridecontacts, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoContactParamsSolimp).name,  sim_propertytype_floatarray, { sim_mujoco_global_overridesolimp1, sim_mujoco_global_overridesolimp2, sim_mujoco_global_overridesolimp3, sim_mujoco_global_overridesolimp4, sim_mujoco_global_overridesolimp5}},
+        {prop(PropScene::mujocoContactParamsSolref).name,  sim_propertytype_floatarray, { sim_mujoco_global_overridesolref1, sim_mujoco_global_overridesolref2, -1, -1, -1}},
+        {prop(PropScene::mujocoDensity).name,  sim_propertytype_float, { sim_mujoco_global_density, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoImpRatio).name,  sim_propertytype_float, { sim_mujoco_global_impratio, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoIntegrator).name,  sim_propertytype_int, { sim_mujoco_global_integrator, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoIterations).name,  sim_propertytype_int, { sim_mujoco_global_iterations, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoKinematicBodiesInertia).name,  sim_propertytype_float, { sim_mujoco_global_kininertia, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoKinematicBodiesMass).name,  sim_propertytype_float, { sim_mujoco_global_kinmass, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoKinematicBodiesOverrideFlags).name,  sim_propertytype_int, { sim_mujoco_global_overridekin, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoMulticcd).name,  sim_propertytype_bool, { sim_mujoco_global_multiccd, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoMultithreaded).name,  sim_propertytype_bool, { sim_mujoco_global_multithreaded, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoNconMax).name,  sim_propertytype_int, { sim_mujoco_global_nconmax, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoNjMax).name,  sim_propertytype_int, { sim_mujoco_global_njmax, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoNstack).name,  sim_propertytype_int, { sim_mujoco_global_nstack, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoRebuildTrigger).name,  sim_propertytype_int, { sim_mujoco_global_rebuildtrigger, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoSolver).name,  sim_propertytype_int, { sim_mujoco_global_solver, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoViscosity).name,  sim_propertytype_float, { sim_mujoco_global_viscosity, -1, -1, -1, -1}},
+        {prop(PropScene::mujocoWind).name,  sim_propertytype_vector3, { sim_mujoco_global_wind1, sim_mujoco_global_wind2, sim_mujoco_global_wind3, -1, -1}},
+        {prop(PropScene::newtonComputeInertias).name,  sim_propertytype_bool, { sim_newton_global_computeinertias, -1, -1, -1, -1}},
+        {prop(PropScene::newtonContactMergeTolerance).name,  sim_propertytype_float, { sim_newton_global_contactmergetolerance, -1, -1, -1, -1}},
+        {prop(PropScene::newtonExactSolver).name,  sim_propertytype_bool, { sim_newton_global_exactsolver, -1, -1, -1, -1}},
+        {prop(PropScene::newtonHighJointAccuracy).name,  sim_propertytype_bool, { sim_newton_global_highjointaccuracy, -1, -1, -1, -1}},
+        {prop(PropScene::newtonIterations).name,  sim_propertytype_int, { sim_newton_global_constraintsolvingiterations, -1, -1, -1, -1}},
+        {prop(PropScene::newtonMultithreading).name,  sim_propertytype_bool, { sim_newton_global_multithreading, -1, -1, -1, -1}},
+        {prop(PropScene::odeComputeInertias).name,  sim_propertytype_bool, { sim_ode_global_computeinertias, -1, -1, -1, -1}},
+        {prop(PropScene::odeGlobalCfm).name,  sim_propertytype_float, { sim_ode_global_cfm, -1, -1, -1, -1}},
+        {prop(PropScene::odeGlobalErp).name,  sim_propertytype_float, { sim_ode_global_erp, -1, -1, -1, -1}},
+        {prop(PropScene::odeInternalScalingFull).name,  sim_propertytype_bool, { sim_ode_global_fullinternalscaling, -1, -1, -1, -1}},
+        {prop(PropScene::odeInternalScalingScaling).name,  sim_propertytype_float, { sim_ode_global_internalscalingfactor, -1, -1, -1, -1}},
+        {prop(PropScene::odeQuickStepEnabled).name,  sim_propertytype_bool, { sim_ode_global_quickstep, -1, -1, -1, -1}},
+        {prop(PropScene::odeQuickStepIterations).name,  sim_propertytype_int, { sim_ode_global_constraintsolvingiterations, -1, -1, -1, -1}},
+        {prop(PropScene::vortexAutoSleep).name,  sim_propertytype_bool, { sim_vortex_global_autosleep, -1, -1, -1, -1}},
+        {prop(PropScene::vortexComputeInertias).name,  sim_propertytype_bool, { sim_vortex_global_computeinertias, -1, -1, -1, -1}},
+        {prop(PropScene::vortexConstraintsAngularCompliance).name,  sim_propertytype_float, { sim_vortex_global_constraintangularcompliance, -1, -1, -1, -1}},
+        {prop(PropScene::vortexConstraintsAngularDamping).name,  sim_propertytype_float, { sim_vortex_global_constraintangulardamping, -1, -1, -1, -1}},
+        {prop(PropScene::vortexConstraintsAngularKineticLoss).name,  sim_propertytype_float, { sim_vortex_global_constraintangularkineticloss, -1, -1, -1, -1}},
+        {prop(PropScene::vortexConstraintsLinearCompliance).name,  sim_propertytype_float, { sim_vortex_global_constraintlinearcompliance, -1, -1, -1, -1}},
+        {prop(PropScene::vortexConstraintsLinearDamping).name,  sim_propertytype_float, { sim_vortex_global_constraintlineardamping, -1, -1, -1, -1}},
+        {prop(PropScene::vortexConstraintsLinearKineticLoss).name,  sim_propertytype_float, { sim_vortex_global_constraintlinearkineticloss, -1, -1, -1, -1}},
+        {prop(PropScene::vortexContactTolerance).name,  sim_propertytype_float, { sim_vortex_global_contacttolerance, -1, -1, -1, -1}},
+        {prop(PropScene::vortexMultithreading).name,  sim_propertytype_bool, { sim_vortex_global_multithreading, -1, -1, -1, -1}},
+    };
+    return params;
+}
+// --------------------------------------------------------------------------------------------------
+
 CDynamicsContainer::CDynamicsContainer()
 {
     _dynamicsEnabled = true;
@@ -3531,22 +3600,23 @@ void CDynamicsContainer::_sendEngineString(CCbor* eev /*= nullptr*/)
 std::string CDynamicsContainer::_enumToProperty(int oldEnum, int type, int& indexWithArrays) const
 {
     std::string retVal;
-    for (size_t i = 0; i < allProps_scene.size(); i++)
+    auto oldEngineParams = getOldEngineParams_scene();
+    for (size_t i = 0; i < oldEngineParams.size(); i++)
     {
         for (size_t j = 0; j < 5; j++)
         {
-            int en = allProps_scene[i].oldEnums[j];
+            int en = oldEngineParams[i].oldEnums[j];
             if (en == -1)
                 break;
             else if (en == oldEnum)
             {
-                if (type == allProps_scene[i].type)
+                if (type == oldEngineParams[i].type)
                 {
-                    if ((j > 0) || (allProps_scene[i].oldEnums[j + 1] != -1))
+                    if ((j > 0) || (oldEngineParams[i].oldEnums[j + 1] != -1))
                         indexWithArrays = int(j);
                     else
                         indexWithArrays = -1;
-                    retVal = allProps_scene[i].name;
+                    retVal = oldEngineParams[i].name;
                 }
                 break;
             }

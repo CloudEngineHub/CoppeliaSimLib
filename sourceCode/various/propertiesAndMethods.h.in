@@ -24,7 +24,6 @@ struct SProperty {
     int type;
     int flags;
     const PropertyInfo info;
-    int oldEnums[5];
 };
 
 template<typename T>
@@ -91,25 +90,25 @@ std::map<int, std::string> buildEnumToStringMap()
 #define SIM_PROPERTYINFO_GROUP (sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude)
 
 #define CUSTOMOBJECTCLASS_PROPERTIES \
-    FUNCX(METHOD_makeOject, "makeObject", sim_propertytype_method, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
-    FUNCX(METHOD_remove, "remove", sim_propertytype_method, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
+    FUNCX(METHOD_makeOject, "makeObject", sim_propertytype_method, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
+    FUNCX(METHOD_remove, "remove", sim_propertytype_method, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
 
 #define CUSTOMSCENEOBJECTCLASS_PROPERTIES \
-    FUNCX(METHOD_makeOject, "makeObject", sim_propertytype_method, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
-    FUNCX(METHOD_remove, "remove", sim_propertytype_method, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
+    FUNCX(METHOD_makeOject, "makeObject", sim_propertytype_method, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
+    FUNCX(METHOD_remove, "remove", sim_propertytype_method, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
 
 #define CUSTOMSCENEOBJECT_PROPERTIES \
-    FUNCX(size, "size", sim_propertytype_float, 0,  PropertyInfo({{"label", "Size"}, {"description", "Custom scene object size"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
+    FUNCX(size, "size", sim_propertytype_float, 0,  PropertyInfo({{"label", "Size"}, {"description", "Custom scene object size"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
 
 #define STACK_PROPERTIES  \
-    FUNCX(content, "content", sim_propertytype_string, sim_propertyinfo_notwritable | sim_propertyinfo_silent | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"label", "Content"}, {"description", ""}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
+    FUNCX(content, "content", sim_propertytype_string, sim_propertyinfo_notwritable | sim_propertyinfo_silent | sim_propertyinfo_modelhashexclude,  PropertyInfo({{"label", "Content"}, {"description", ""}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
 
 #define COLOR_PROPERTIES \
-    FUNCX(GROUP_prefix, "__--__", sim_propertytype_group, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude, PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
-    FUNCX(colDiffuse, "diffuse", sim_propertytype_color, 0,  PropertyInfo({{"label", "Diffuse color"}, {"description", ""}, {"supersedes", "sim.setObjectColor,sim.getObjectColor,sim.setShapeColor,sim.getShapeColor"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
-    FUNCX(colEmission, "emission", sim_propertytype_color, 0,  PropertyInfo({{"label", "Emission color"}, {"description", ""}, {"supersedes", "sim.setObjectColor,sim.getObjectColor,sim.setShapeColor,sim.getShapeColor"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
-    FUNCX(colSpecular, "specular", sim_propertytype_color, 0,  PropertyInfo({{"label", "Specular color"}, {"description", ""}, {"supersedes", "sim.setObjectColor,sim.getObjectColor,sim.setShapeColor,sim.getShapeColor"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
-    FUNCX(transparency, "transparency", sim_propertytype_float, 0,  PropertyInfo({{"label", "Transparency"}, {"description", ""}, {"supersedes", "sim.setShapeColor,sim.getShapeColor"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}}), -1, -1, -1, -1, -1) \
+    FUNCX(GROUP_prefix, "__--__", sim_propertytype_group, sim_propertyinfo_silent | sim_propertyinfo_constant | sim_propertyinfo_notreadable | sim_propertyinfo_notwritable | sim_propertyinfo_modelhashexclude, PropertyInfo({{"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
+    FUNCX(colDiffuse, "diffuse", sim_propertytype_color, 0,  PropertyInfo({{"label", "Diffuse color"}, {"description", ""}, {"supersedes", "sim.setObjectColor,sim.getObjectColor,sim.setShapeColor,sim.getShapeColor"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
+    FUNCX(colEmission, "emission", sim_propertytype_color, 0,  PropertyInfo({{"label", "Emission color"}, {"description", ""}, {"supersedes", "sim.setObjectColor,sim.getObjectColor,sim.setShapeColor,sim.getShapeColor"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
+    FUNCX(colSpecular, "specular", sim_propertytype_color, 0,  PropertyInfo({{"label", "Specular color"}, {"description", ""}, {"supersedes", "sim.setObjectColor,sim.getObjectColor,sim.setShapeColor,sim.getShapeColor"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
+    FUNCX(transparency, "transparency", sim_propertytype_float, 0,  PropertyInfo({{"label", "Transparency"}, {"description", ""}, {"supersedes", "sim.setShapeColor,sim.getShapeColor"}, {"startSupport", 2}, {"startDeprecated", 0}, {"endSupport", 0}})) \
 
 // ----------------------------------------------------------------------------------------------
 
@@ -119,14 +118,14 @@ std::map<int, std::string> buildEnumToStringMap()
 #py for c in classes.values():
 #define `c.name.upper()`_PROPERTIES \
 #py for x in sorted([p for p in c.properties.values() if p.var] + [m for m in c.methods.values() if m.var], key=lambda x: (x.var.startswith('DEPRECATED'), x.var.startswith('METHOD_'), x.var)):
-    FUNCX(`x.var`, "`x.name`", sim_propertytype_`x.type`, `flags(x)`, `propertyInfo(x)`, `', '.join(str(i) for i in x.aux or [-1, -1, -1, -1, -1])`) \
+    FUNCX(`x.var`, "`x.name`", sim_propertytype_`x.type`, `flags(x)`, `propertyInfo(x)`) \
 #py endfor
 
 #py endfor
 
 // ----------------------------------------------------------------------------------------------
 enum class PropCustomObjectClass {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     CUSTOMOBJECTCLASS_PROPERTIES
     #undef FUNCX
 };
@@ -136,7 +135,7 @@ const SProperty& prop(PropCustomObjectClass p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropCustomObject {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     CUSTOMOBJECT_PROPERTIES
     #undef FUNCX
 };
@@ -146,7 +145,7 @@ const SProperty& prop(PropCustomObject p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropCustomSceneObject {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     CUSTOMSCENEOBJECT_PROPERTIES
     #undef FUNCX
 };
@@ -156,7 +155,7 @@ const SProperty& prop(PropCustomSceneObject p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropCustomSceneObjectClass {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     CUSTOMSCENEOBJECTCLASS_PROPERTIES
     #undef FUNCX
 };
@@ -166,7 +165,7 @@ const SProperty& prop(PropCustomSceneObjectClass p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropObject {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     OBJECT_PROPERTIES
     #undef FUNCX
 };
@@ -176,7 +175,7 @@ const SProperty& prop(PropObject p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropApp {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     APP_PROPERTIES
     #undef FUNCX
 };
@@ -186,7 +185,7 @@ const SProperty& prop(PropApp p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropDetachedScript {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     DETACHEDSCRIPT_PROPERTIES
     #undef FUNCX
 };
@@ -196,7 +195,7 @@ const SProperty& prop(PropDetachedScript p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropStack {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     STACK_PROPERTIES
     #undef FUNCX
 };
@@ -206,7 +205,7 @@ const SProperty& prop(PropStack p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropCollection {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     COLLECTION_PROPERTIES
     #undef FUNCX
 };
@@ -216,7 +215,7 @@ const SProperty& prop(PropCollection p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropDrawingObject {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     DRAWINGOBJECT_PROPERTIES
     #undef FUNCX
 };
@@ -226,7 +225,7 @@ const SProperty& prop(PropDrawingObject p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropColor {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     COLOR_PROPERTIES
     #undef FUNCX
 };
@@ -236,7 +235,7 @@ const SProperty& prop(PropColor p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropScene {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     SCENE_PROPERTIES
     #undef FUNCX
 };
@@ -246,7 +245,7 @@ const SProperty& prop(PropScene p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropMesh {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     MESH_PROPERTIES
     #undef FUNCX
 };
@@ -256,7 +255,7 @@ const SProperty& prop(PropMesh p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropSceneObject {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     SCENEOBJECT_PROPERTIES
     #undef FUNCX
 };
@@ -266,7 +265,7 @@ const SProperty& prop(PropSceneObject p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropShape {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     SHAPE_PROPERTIES
     #undef FUNCX
 };
@@ -276,7 +275,7 @@ const SProperty& prop(PropShape p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropCamera {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     CAMERA_PROPERTIES
     #undef FUNCX
 };
@@ -286,7 +285,7 @@ const SProperty& prop(PropCamera p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropDummy {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     DUMMY_PROPERTIES
     #undef FUNCX
 };
@@ -296,7 +295,7 @@ const SProperty& prop(PropDummy p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropForceSensor {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     FORCESENSOR_PROPERTIES
     #undef FUNCX
 };
@@ -306,7 +305,7 @@ const SProperty& prop(PropForceSensor p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropGraph {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     GRAPH_PROPERTIES
     #undef FUNCX
 };
@@ -316,7 +315,7 @@ const SProperty& prop(PropGraph p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropJoint {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     JOINT_PROPERTIES
     #undef FUNCX
 };
@@ -326,7 +325,7 @@ const SProperty& prop(PropJoint p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropLight {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     LIGHT_PROPERTIES
     #undef FUNCX
 };
@@ -336,7 +335,7 @@ const SProperty& prop(PropLight p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropOctree {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     OCTREE_PROPERTIES
     #undef FUNCX
 };
@@ -346,7 +345,7 @@ const SProperty& prop(PropOctree p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropPointCloud {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     POINTCLOUD_PROPERTIES
     #undef FUNCX
 };
@@ -356,7 +355,7 @@ const SProperty& prop(PropPointCloud p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropProximitySensor {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     PROXIMITYSENSOR_PROPERTIES
     #undef FUNCX
 };
@@ -366,7 +365,7 @@ const SProperty& prop(PropProximitySensor p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropVisionSensor {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     VISIONSENSOR_PROPERTIES
     #undef FUNCX
 };
@@ -376,7 +375,7 @@ const SProperty& prop(PropVisionSensor p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropScript {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     SCRIPT_PROPERTIES
     #undef FUNCX
 };
@@ -386,7 +385,7 @@ const SProperty& prop(PropScript p);
 
 // ----------------------------------------------------------------------------------------------
 enum class PropMarker {
-    #define FUNCX(name, str, v1, v2, t1, w0, w1, w2, w3, w4) name,
+    #define FUNCX(name, str, v1, v2, t1) name,
     MARKER_PROPERTIES
     #undef FUNCX
 };
