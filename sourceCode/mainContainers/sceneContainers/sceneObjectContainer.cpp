@@ -396,7 +396,11 @@ bool CSceneObjectContainer::eraseObjects(const std::vector<int>* objectHandles, 
                         //    ((CScript*)it)->detachedScript->pushObjectRemoveEvent();
 
                         App::scenes->pushSceneObjectRemoveEvent(it);
+                        std::vector<unsigned char> data;
+                        SEventInf eventInfo;
+                        App::scenes->getEvents()->popEvent(data, eventInfo);
                         _removeObject(it);
+                        App::scenes->getEvents()->pushEvent(data, eventInfo);
                     }
                 }
 

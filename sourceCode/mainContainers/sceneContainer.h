@@ -73,6 +73,7 @@ class CSceneContainer
     CCbor* createSceneObjectChangedEvent(int64_t sceneObjectHandle, bool isCommonObjectData, const char* fieldName, bool mergeable);
     CCbor* createObjectChangedEvent(int64_t objectHandle, const char* fieldName, bool mergeable);
     void pushEvent();
+    CCbor* getEvents() const;
 
     void getGenesisEvents(std::vector<unsigned char>* genesisEvents, CInterfaceStack* stack);
     void dispatchEvents();

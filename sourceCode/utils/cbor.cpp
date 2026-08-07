@@ -776,7 +776,6 @@ void CCbor::pushEvent()
 
     if (!inf->unknownObjects.empty())
     {
-        //printf("x");
         _eventInfos_forReorder.push_back(inf[0]);
         std::vector<unsigned char> v(_buff.begin() + inf->pos, _buff.end());
         _buff_forReorder.push_back(v);
@@ -808,6 +807,26 @@ void CCbor::pushEvent()
                 break;
         }
     }
+}
+
+void CCbor::popEvent(std::vector<unsigned char>& data, SEventInf& eventInfo)
+{
+    if (!_eventInfos.empty())
+    {
+        SEventInf* inf = &_eventInfos[_eventInfos.size() - 1];
+        eventInfo = _eventInfos.back();
+        data.assign(_buff.begin() + inf->pos, _buff.end());
+        _buff.resize(inf->pos);
+        _eventInfos.pop_back();
+    }
+}
+
+void CCbor::pushEvent(const std::vector<unsigned char>& data, const SEventInf& eventInfo)
+{
+    _eventInfos.push_back(eventInfo);
+    SEventInf* inf = &_eventInfos[_eventInfos.size() - 1];
+    inf->pos = _buff.size();
+    _buff.insert(_buff.end(), data.begin(), data.end());
 }
 
 int64_t CCbor::finalizeEvents(int64_t nextSeq, bool seqChanges, std::vector<SEventInf>* inf /*= nullptr*/)

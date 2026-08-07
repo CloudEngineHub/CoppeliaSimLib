@@ -106,6 +106,8 @@ class CCbor
 
     void createEvent(const char* event, const char* fieldName, const char* objType, int64_t handle, int64_t uid, bool mergeable, bool openDataField = true);
     void pushEvent();
+    void popEvent(std::vector<unsigned char>& data, SEventInf& eventInfo);
+    void pushEvent(const std::vector<unsigned char>& data, const SEventInf& eventInfo);
     int64_t finalizeEvents(int64_t nextSeq, bool seqChanges, std::vector<SEventInf>* inf = nullptr);
     size_t getEventCnt() const;
     size_t getEventDepth() const;

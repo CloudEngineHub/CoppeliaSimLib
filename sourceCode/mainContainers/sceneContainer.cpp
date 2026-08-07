@@ -626,6 +626,11 @@ void CSceneContainer::pushEvent()
     _eventMutex.unlock();
 }
 
+CCbor* CSceneContainer::getEvents() const
+{
+    return _events;
+}
+
 CCbor* CSceneContainer::_createGeneralEvent(const char* event, int64_t objectHandle, int64_t uid, const char* objType, const char* fieldName, bool mergeable, bool openDataField /*=true*/)
 {
     CCbor* retVal = nullptr;
