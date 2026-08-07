@@ -5979,7 +5979,7 @@ void CSceneObjectContainer::_setOrphanObjects(const std::vector<CSceneObject*>& 
             for (size_t i = 0; i < _orphanObjects.size(); i++)
                 arr.push_back(_orphanObjects[i]->getObjectHandle());
             const char* cmd = prop(PropScene::orphans).name;
-            CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
+            CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, false);
             if (App::getEventProtocolVersion() <= 3)
                 ev->appendKeyInt32Array(cmd, arr.data(), arr.size());
             else
@@ -5988,7 +5988,7 @@ void CSceneObjectContainer::_setOrphanObjects(const std::vector<CSceneObject*>& 
             if (App::getEventProtocolVersion() < 4)
             { // --- For backward compatibility ---
                 cmd = prop(PropScene::DEPRECATED_orphanHandles).name;
-                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
+                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, false);
                 ev->appendKeyInt32Array(cmd, arr.data(), arr.size());
                 App::scenes->pushEvent();
             }
@@ -6019,7 +6019,7 @@ void CSceneObjectContainer::_setAllObjects(const std::vector<CSceneObject*>& new
             for (size_t i = 0; i < _allObjects.size(); i++)
                 arr.push_back(_allObjects[i]->getObjectHandle());
             const char* cmd = prop(PropScene::objects).name;
-            CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
+            CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, false);
             if (App::getEventProtocolVersion() <= 3)
                 ev->appendKeyInt32Array(cmd, arr.data(), arr.size());
             else
@@ -6027,7 +6027,7 @@ void CSceneObjectContainer::_setAllObjects(const std::vector<CSceneObject*>& new
             App::scenes->pushEvent();
             if (App::getEventProtocolVersion() < 4)
             { // --- For backward compatibility ---
-                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, true);
+                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
                 ev->appendKeyInt32Array("objectHandles", arr.data(), arr.size());
                 App::scenes->pushEvent();
             }
