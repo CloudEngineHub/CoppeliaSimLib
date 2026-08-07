@@ -13,6 +13,7 @@
 
 struct SEventInf
 {
+    std::string event;
     size_t pos;
     std::string eventId;
     int64_t target;
@@ -20,6 +21,7 @@ struct SEventInf
     std::vector<size_t> fieldPositions;
     std::vector<std::string> fieldNames;
     std::vector<size_t> fieldSizes;
+    std::set<int64_t> unknownObjects;
 };
 
 class CCbor
@@ -121,6 +123,7 @@ class CCbor
     void _adjustEventSeq(size_t pos, int64_t endSeq);
 
     std::vector<unsigned char> _buff;
+    std::vector<std::vector<unsigned char>> _buff_forReorder;
     int _options; // bit0: treat doubles as float
 
     size_t _eventDepth; // nb of array/map closes needed
@@ -128,8 +131,10 @@ class CCbor
     bool _nextIsKeyInData;
     bool _inDataField;
     int _handleDataFieldDisableLevel;
-    size_t _discardableEventCnt;
+//    size_t _discardableEventCnt;
     std::vector<SEventInf> _eventInfos;
-    std::map<std::string, size_t> _mergeableEventIds;
+    std::vector<SEventInf> _eventInfos_forReorder;
+//    std::map<std::string, size_t> _mergeableEventIds;
     std::vector<bool> _sizedArrayInfo;
+    std::set<int64_t> _createdObjects_events;
 };

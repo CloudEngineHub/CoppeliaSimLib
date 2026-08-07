@@ -58,6 +58,12 @@ void CCbor::appendInt64(int64_t v)
 
 void CCbor::appendHandle(int64_t h)
 {
+    if ((h >= 0) && (_createdObjects_events.find(h) == _createdObjects_events.end()) && (_eventInfos.size() > 0))
+    { // referencing an object not yet created...
+        SEventInf* inf = &_eventInfos[_eventInfos.size() - 1];
+        inf->unknownObjects.insert(h);
+    }
+
     _handleDataField();
     _buff.push_back(0xDB); // Tag header (219)
     int64_t w = 4294999999; // Type info (handle)
@@ -164,6 +170,17 @@ void CCbor::appendInt64Array(const int64_t* v, size_t cnt)
 
 void CCbor::appendHandleArray(const int64_t* h, size_t cnt)
 {
+    if ((cnt > 0) && (_eventInfos.size() > 0))
+    {
+        SEventInf* inf = &_eventInfos[_eventInfos.size() - 1];
+        for (size_t i = 0; i < cnt; i++)
+        {
+            int64_t hh = h[i];
+            if ((hh >= 0) && (_createdObjects_events.find(hh) == _createdObjects_events.end()))
+                inf->unknownObjects.insert(hh); // referencing an object not yet created...
+        }
+    }
+
     _handleDataField();
     _buff.push_back(0xDB); // Tag header (219)
     int64_t w = 4294999998; // Type info (handle array)
@@ -659,8 +676,8 @@ void CCbor::clear()
 {
     // do not clear _buff in here! _buff.clear();
     _eventInfos.clear();
-    _mergeableEventIds.clear();
-    _discardableEventCnt = 0;
+    _eventInfos_forReorder.clear();
+    _buff_forReorder.clear();
     _eventDepth = 0;
     _eventOpen = false;
     _nextIsKeyInData = true;
@@ -688,6 +705,13 @@ size_t CCbor::getEventDepth() const
 
 void CCbor::createEvent(const char* event, const char* fieldName, const char* objType, int64_t handle, int64_t uid, bool mergeable, bool openDataField /*=true*/)
 {
+    if (strcmp(event, EVENTTYPE_OBJECTADDED) == 0)
+        _createdObjects_events.insert(handle);
+    else if (strcmp(event, EVENTTYPE_OBJECTREMOVED) == 0)
+        _createdObjects_events.erase(handle);
+    else if (strcmp(event, EVENTTYPE_GENESISBEGIN) == 0)
+        _createdObjects_events.clear();
+
     if (_eventOpen)
     {
         printf("[CoppeliaSim:error] creating an event where an event push is expected.\n");
@@ -698,19 +722,16 @@ void CCbor::createEvent(const char* event, const char* fieldName, const char* ob
     SEventInf inf;
     inf.pos = _buff.size();
     inf.target = handle;
+    inf.event = event;
     if (mergeable)
     {
-        std::string eventId(event);
+        inf.eventId = event;
         if (fieldName != nullptr)
-            eventId += fieldName;
+            inf.eventId += fieldName;
         if (objType != nullptr)
-            eventId += objType;
+            inf.eventId += objType;
         if (uid != -1)
-            eventId += std::to_string(uid);
-        inf.eventId = eventId;
-        if (_mergeableEventIds.find(eventId) != _mergeableEventIds.end())
-            _discardableEventCnt++;
-        _mergeableEventIds[eventId] = _eventInfos.size();
+            inf.eventId += std::to_string(uid);
     }
     _eventInfos.push_back(inf);
 
@@ -748,25 +769,70 @@ void CCbor::pushEvent()
         _nextIsKeyInData = true;
     }
     else
-        App::logMsg(sim_verbosity_errors, "pushing an event unexisting event.");
+        App::logMsg(sim_verbosity_errors, "pushing an event that doesn't exist.");
 
     SEventInf* inf = &_eventInfos[_eventInfos.size() - 1];
     inf->size = _buff.size() - inf->pos;
+
+    if (!inf->unknownObjects.empty())
+    {
+        //printf("x");
+        _eventInfos_forReorder.push_back(inf[0]);
+        std::vector<unsigned char> v(_buff.begin() + inf->pos, _buff.end());
+        _buff_forReorder.push_back(v);
+        _buff.resize(inf->pos);
+        _eventInfos.pop_back();
+    }
+    else if ((inf->event.compare(EVENTTYPE_OBJECTADDED) == 0) && (_eventInfos_forReorder.size() > 0))
+    {
+        while (true)
+        {
+            bool found = false;
+            for (size_t i = 0; i < _eventInfos_forReorder.size(); i++)
+            {
+                if (_eventInfos_forReorder[i].unknownObjects.find(inf->target) != _eventInfos_forReorder[i].unknownObjects.end())
+                {
+                    _eventInfos_forReorder[i].unknownObjects.erase(inf->target);
+                    if (_eventInfos_forReorder[i].unknownObjects.empty())
+                    {
+                        found = true;
+                        _eventInfos_forReorder[i].pos = _buff.size();
+                        _eventInfos.push_back(_eventInfos_forReorder[i]);
+                        _buff.insert(_buff.end(), _buff_forReorder[i].begin(), _buff_forReorder[i].end());
+                        _buff_forReorder.erase(_buff_forReorder.begin() + i);
+                        _eventInfos_forReorder.erase(_eventInfos_forReorder.begin() + i);
+                    }
+                }
+            }
+            if (!found)
+                break;
+        }
+    }
 }
 
 int64_t CCbor::finalizeEvents(int64_t nextSeq, bool seqChanges, std::vector<SEventInf>* inf /*= nullptr*/)
 {
     if (_eventOpen)
         App::logMsg(sim_verbosity_errors, "finalizing events where an event push is expected.");
-
+    int discardableEventCnt = 0;
+    std::map<std::string, int> mergeInfo;
+    for (size_t i = 0; i < _eventInfos.size(); i++)
+    {
+        if (_eventInfos[i].eventId.size() > 0)
+        {
+            if (mergeInfo.find(_eventInfos[i].eventId) != mergeInfo.end())
+                discardableEventCnt++;
+            mergeInfo[_eventInfos[i].eventId] = i;
+        }
+    }
     if (!seqChanges)
-        nextSeq = nextSeq - _eventInfos.size() + _discardableEventCnt;
+        nextSeq = nextSeq - _eventInfos.size() + discardableEventCnt;
     std::vector<unsigned char> events;
     _buff.swap(events);
     openArray(); // holding all events
     for (size_t i = 0; i < _eventInfos.size(); i++)
     {
-        if ((_eventInfos[i].eventId.size() == 0) || (_mergeableEventIds.find(_eventInfos[i].eventId)->second == i))
+        if ((_eventInfos[i].eventId.size() == 0) || (mergeInfo.find(_eventInfos[i].eventId)->second == i))
         {
             SEventInf n;
             n.target = _eventInfos[i].target;

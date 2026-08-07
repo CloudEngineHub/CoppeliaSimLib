@@ -1880,7 +1880,6 @@ void CSceneObjectContainer::_handleOrderIndexOfOrphans()
     {
         CSceneObject* child = getOrphanFromIndex(i);
         std::string hn(child->getObjectAlias());
-        std::map<std::string, int>::iterator it = nameMap.find(hn);
         if (nameMap[hn] == 0)
             co[i] = -1; // means unique with that name, with that parent
         child->setChildOrder(co[i]);
