@@ -784,19 +784,30 @@ void CCbor::pushEvent()
     }
     else if ((inf->event.compare(EVENTTYPE_OBJECTADDED) == 0) && (_eventInfos_forReorder.size() > 0))
     {
+        int64_t addedHandle = inf->target;
         while (true)
         {
             bool found = false;
             for (size_t i = 0; i < _eventInfos_forReorder.size(); i++)
             {
-                if (_eventInfos_forReorder[i].unknownObjects.find(inf->target) != _eventInfos_forReorder[i].unknownObjects.end())
+                //if (_eventInfos_forReorder[i].unknownObjects.find(inf->target) != _eventInfos_forReorder[i].unknownObjects.end())
+                auto& delayed = _eventInfos_forReorder[i];
+                if (delayed.unknownObjects.find(addedHandle) != delayed.unknownObjects.end())
                 {
-                    _eventInfos_forReorder[i].unknownObjects.erase(inf->target);
-                    if (_eventInfos_forReorder[i].unknownObjects.empty())
+                    //_eventInfos_forReorder[i].unknownObjects.erase(inf->target);
+                    delayed.unknownObjects.erase(addedHandle);
+                    //if (_eventInfos_forReorder[i].unknownObjects.empty())
+                    if (delayed.unknownObjects.empty())
                     {
                         found = true;
-                        _eventInfos_forReorder[i].pos = _buff.size();
-                        _eventInfos.push_back(_eventInfos_forReorder[i]);
+                        size_t newPos = _buff.size();
+                        size_t oldPos = delayed.pos;
+                        size_t delta = newPos - oldPos;
+                        for (size_t& fp : delayed.fieldPositions)
+                            fp += delta;
+                        delayed.pos = newPos;
+                        _eventInfos.push_back(delayed);
+
                         _buff.insert(_buff.end(), _buff_forReorder[i].begin(), _buff_forReorder[i].end());
                         _buff_forReorder.erase(_buff_forReorder.begin() + i);
                         _eventInfos_forReorder.erase(_eventInfos_forReorder.begin() + i);
