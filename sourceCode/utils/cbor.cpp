@@ -784,22 +784,22 @@ void CCbor::pushEvent()
     }
     else if ((inf->event.compare(EVENTTYPE_OBJECTADDED) == 0) && (_eventInfos_forReorder.size() > 0))
     {
-        int64_t addedHandle = inf->target;
-        while (true)
+        std::vector<int64_t> addedObjList;
+        addedObjList.push_back(inf->target);
+        while (addedObjList.size() > 0)
         {
-            bool found = false;
-            for (size_t i = 0; i < _eventInfos_forReorder.size(); i++)
+            int64_t addedHandle = addedObjList[0];
+            addedObjList.erase(addedObjList.begin());
+            for (int i = 0; i < int(_eventInfos_forReorder.size()); i++)
             {
-                //if (_eventInfos_forReorder[i].unknownObjects.find(inf->target) != _eventInfos_forReorder[i].unknownObjects.end())
                 auto& delayed = _eventInfos_forReorder[i];
                 if (delayed.unknownObjects.find(addedHandle) != delayed.unknownObjects.end())
                 {
-                    //_eventInfos_forReorder[i].unknownObjects.erase(inf->target);
                     delayed.unknownObjects.erase(addedHandle);
-                    //if (_eventInfos_forReorder[i].unknownObjects.empty())
                     if (delayed.unknownObjects.empty())
                     {
-                        found = true;
+                        if ((delayed.event.compare(EVENTTYPE_OBJECTADDED) == 0) && (_eventInfos_forReorder.size() > 1))
+                            addedObjList.push_back(delayed.target); // the inserted event could trigger other insertions too
                         size_t newPos = _buff.size();
                         size_t oldPos = delayed.pos;
                         size_t delta = newPos - oldPos;
@@ -811,11 +811,10 @@ void CCbor::pushEvent()
                         _buff.insert(_buff.end(), _buff_forReorder[i].begin(), _buff_forReorder[i].end());
                         _buff_forReorder.erase(_buff_forReorder.begin() + i);
                         _eventInfos_forReorder.erase(_eventInfos_forReorder.begin() + i);
+                        i--; // reprocess this position
                     }
                 }
             }
-            if (!found)
-                break;
         }
     }
 }
