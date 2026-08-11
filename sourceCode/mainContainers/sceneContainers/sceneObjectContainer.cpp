@@ -725,6 +725,9 @@ void CSceneObjectContainer::checkObjectIsInstanciated(CSceneObject* obj, const c
 
 void CSceneObjectContainer::pushObjectGenesisEvents() const
 {
+    // Handle the main script (and old associated scripts) first:
+    embeddedScriptContainer->pushObjectGenesisEvents();
+
     std::vector<CSceneObject*> orderedObjects;
     for (size_t i = 0; i < getOrphanCount(); i++)
         orderedObjects.push_back(getOrphanFromIndex(i));
@@ -829,9 +832,6 @@ void CSceneObjectContainer::pushObjectGenesisEvents() const
         ev->appendKeyInt32Array("selectionHandles", _selectedObjectHandles.data(), _selectedObjectHandles.size());
         App::scenes->pushEvent();
     }
-
-    // Handle the main script and old associated scripts:
-    embeddedScriptContainer->pushObjectGenesisEvents();
 }
 
 void CSceneObjectContainer::appendNonObjectGenesisData(CCbor* ev) const

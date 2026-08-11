@@ -1246,7 +1246,7 @@ void CScene::pushGenesisEvents()
 {
     CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
     Obj::addObjectEventData(ev);
-    ev->appendKeyInt64(prop(PropObject::handle).name, _objectHandle);
+//    ev->appendKeyInt64(prop(PropObject::handle).name, _objectHandle);
     simulation->appendGenesisData(ev);
     environment->appendGenesisData(ev);
     customSceneData.appendEventData(nullptr, ev);
