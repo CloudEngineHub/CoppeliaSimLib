@@ -727,125 +727,32 @@ void CSceneObjectContainer::checkObjectIsInstanciated(CSceneObject* obj, const c
 
 void CSceneObjectContainer::pushObjectGenesisEvents() const
 {
-    embeddedScriptContainer->pushObjectGenesisEvents_oldAssociatedScripts(); // first
+    sendSpecificCreationEvents(&_allObjects, false);
+}
 
-    if (App::getEventProtocolVersion() < 4)
+void CSceneObjectContainer::sendSpecificCreationEvents(const std::vector<CSceneObject*>* sceneObjects, bool mainScript) const
+{
+    if (mainScript)
     {
-        std::vector<CSceneObject*> orderedObjects;
-        for (size_t i = 0; i < getOrphanCount(); i++)
-            orderedObjects.push_back(getOrphanFromIndex(i));
-
-        for (size_t i = 0; i < orderedObjects.size(); i++)
-        {
-            CSceneObject* obj = orderedObjects[i];
-            for (size_t j = 0; j < obj->getChildCount(); j++)
-                orderedObjects.push_back(obj->getChildFromIndex(j));
-        }
-
-        std::vector<int> f_objectHandles;
-        std::vector<int> f_orphanHandles;
-        for (size_t i = 0; i < orderedObjects.size(); i++)
-        {
-            CSceneObject* obj = orderedObjects[i];
-            obj->pushObjectCreationEvent();
-
-            // We need to "fake" adding that object:
-            f_objectHandles.push_back(obj->getObjectHandle());
-            const char* cmd = prop(PropScene::objects).name;
-            CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt32Array(cmd, f_objectHandles.data(), f_objectHandles.size());
-            else
-                ev->appendKeyHandleArray(cmd, f_objectHandles.data(), f_objectHandles.size());
-            App::scenes->pushEvent();
-            if (App::getEventProtocolVersion() < 4)
-            { // --- For backward compatibility ---
-                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, true);
-                ev->appendKeyInt32Array("objectHandles", f_objectHandles.data(), f_objectHandles.size());
-                App::scenes->pushEvent();
-            }
-
-            if (obj->getParent() == nullptr)
-            { // We need to "fake" adding that orphan:
-                f_orphanHandles.push_back(obj->getObjectHandle());
-                cmd = prop(PropScene::orphans).name;
-                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-                if (App::getEventProtocolVersion() <= 3)
-                    ev->appendKeyInt32Array(cmd, f_orphanHandles.data(), f_orphanHandles.size());
-                else
-                    ev->appendKeyHandleArray(cmd, f_orphanHandles.data(), f_orphanHandles.size());
-                App::scenes->pushEvent();
-                if (App::getEventProtocolVersion() < 4)
-                { // --- For backward compatibility ---
-                    ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, true);
-                    ev->appendKeyInt32Array("orphanHandles", f_orphanHandles.data(), f_orphanHandles.size());
-                    App::scenes->pushEvent();
-                }
-            }
-        }
-
-        // Make sure the object list has the same order:
-        std::vector<int> arr;
-        for (size_t i = 0; i < _allObjects.size(); i++)
-            arr.push_back(_allObjects[i]->getObjectHandle());
-        const char* cmd = prop(PropScene::objects).name;
-        CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyInt32Array(cmd, arr.data(), arr.size());
-        else
-            ev->appendKeyHandleArray(cmd, arr.data(), arr.size());
+        embeddedScriptContainer->pushMainScriptGenesisEvent(); // first
+        CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
+        CDetachedScript* it = App::scene->sceneObjects->embeddedScriptContainer->getMainScript();
+        int msh = -1;
+        if (it != nullptr)
+            msh = it->getSceneObjectOrDetachedScriptHandle();
+        ev->appendKeyHandle(prop(PropScene::mainScript).name, msh);
         App::scenes->pushEvent();
-        if (App::getEventProtocolVersion() < 4)
-        { // --- For backward compatibility ---
-            ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, true);
-            ev->appendKeyInt32Array("objectHandles", arr.data(), arr.size());
-            App::scenes->pushEvent();
-        }
-
-        // Make sure the orphan list has the same order:
-        arr.clear();
-        for (size_t i = 0; i < _orphanObjects.size(); i++)
-            arr.push_back(_orphanObjects[i]->getObjectHandle());
-        cmd = prop(PropScene::orphans).name;
-        ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyInt32Array(cmd, arr.data(), arr.size());
-        else
-            ev->appendKeyHandleArray(cmd, arr.data(), arr.size());
-        App::scenes->pushEvent();
-        if (App::getEventProtocolVersion() < 4)
-        { // --- For backward compatibility ---
-            ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, true);
-            ev->appendKeyInt32Array("orphanHandles", arr.data(), arr.size());
-            App::scenes->pushEvent();
-        }
-
-
-        // Update the selection list:
-        cmd = prop(PropScene::selection).name;
-        ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyInt32Array(cmd, _selectedObjectHandles.data(), _selectedObjectHandles.size());
-        else
-            ev->appendKeyHandleArray(cmd, _selectedObjectHandles.data(), _selectedObjectHandles.size());
-        App::scenes->pushEvent();
-        if (App::getEventProtocolVersion() < 4)
-        { // --- For backward compatibility ---
-            ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, true);
-            ev->appendKeyInt32Array("selectionHandles", _selectedObjectHandles.data(), _selectedObjectHandles.size());
-            App::scenes->pushEvent();
-        }
     }
-    else
+    if (sceneObjects != nullptr)
     {
-        for (size_t i = 0; i < _allObjects.size(); i++)
+        for (size_t i = 0; i < sceneObjects->size(); i++)
         {
-            CSceneObject* obj = _allObjects[i];
+            CSceneObject* obj = sceneObjects->at(i);
             obj->pushObjectCreationEvent(true);
         }
-        for (size_t i = 0; i < _allObjects.size(); i++)
+        for (size_t i = 0; i < sceneObjects->size(); i++)
         {
-            CSceneObject* obj = _allObjects[i];
+            CSceneObject* obj = sceneObjects->at(i);
             const std::vector<CSceneObject*>* children = obj->getChildren();
             CSceneObject* parent = obj->getParent();
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(obj->getObjectHandle(), true, prop(PropSceneObject::parent).name, false);
@@ -868,27 +775,11 @@ void CSceneObjectContainer::pushObjectGenesisEvents() const
 void CSceneObjectContainer::appendNonObjectGenesisData(CCbor* ev) const
 { // Append data as for an empty scene:
     std::vector<int> arr;
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyInt32Array(prop(PropScene::objects).name, arr.data(), arr.size());
-        ev->appendKeyInt32Array(prop(PropScene::orphans).name, arr.data(), arr.size());
-    }
-    else
-    {
-        ev->appendKeyHandleArray(prop(PropScene::objects).name, arr.data(), arr.size());
-        ev->appendKeyHandleArray(prop(PropScene::orphans).name, arr.data(), arr.size());
-    }
+    ev->appendKeyHandleArray(prop(PropScene::objects).name, arr.data(), arr.size());
+    ev->appendKeyHandleArray(prop(PropScene::orphans).name, arr.data(), arr.size());
     ev->appendText(prop(PropScene::selection).name);
     ev->openArray();
     ev->closeArrayOrMap();
-    if (App::getEventProtocolVersion() < 4)
-    { // --- For backward compatibility ---
-        ev->appendKeyInt32Array("objectHandles", arr.data(), arr.size());
-        ev->appendKeyInt32Array("orphanHandles", arr.data(), arr.size());
-        ev->appendText("selectionHandles");
-        ev->openArray();
-        ev->closeArrayOrMap();
-    }
 }
 
 void CSceneObjectContainer::getAllCollidableObjectsFromSceneExcept(const std::vector<CSceneObject*>* exceptionObjects,

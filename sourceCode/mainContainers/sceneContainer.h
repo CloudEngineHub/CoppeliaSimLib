@@ -64,6 +64,8 @@ class CSceneContainer
     bool shouldTemporarilySuspendMainScript();
     void pushSceneObjectRemoveEvent(const CSceneObject* object);
 
+    void disableEvents();
+    void enableEvents();
     bool getEventsEnabled() const;
     std::string getSessionId() const;
     CCbor* createNakedEvent(const char* event, int64_t handle, int64_t uid, bool mergeable); // has no 'data' field
@@ -120,7 +122,7 @@ class CSceneContainer
     static int64_t _eventSeq;
     VMutex _eventMutex; // just needed while we are still using the old GUI, since it will also generate events
     CCbor* _events;
-    bool _eventsEnabled;
+    int _eventsDisabledLevel; // 0 = enabled
 
     std::vector<int64_t> _uniqueIdsOfSelectionSinceLastTimeGetAndClearModificationFlagsWasCalled;
     int _modificationFlags;

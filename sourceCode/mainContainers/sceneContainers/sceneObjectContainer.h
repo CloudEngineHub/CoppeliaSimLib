@@ -234,6 +234,7 @@ class CSceneObjectContainer
 
     void checkObjectIsInstanciated(CSceneObject* obj, const char* location) const;
     void pushObjectGenesisEvents() const;
+    void sendSpecificCreationEvents(const std::vector<CSceneObject*>* sceneObjects, bool mainScript) const;
     void appendNonObjectGenesisData(CCbor* ev) const;
 
     void getAllCollidableObjectsFromSceneExcept(const std::vector<CSceneObject*>* exceptionObjects, std::vector<CSceneObject*>& objects);

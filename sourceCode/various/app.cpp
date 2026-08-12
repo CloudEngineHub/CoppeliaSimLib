@@ -1039,7 +1039,7 @@ void App::__logMsg(const char* originName, int verbosityLevel, const char* msg, 
                 _logOnceMessages[originName][realVerbosityLevel][msg] = true;
         }
 
-        if ((scenes != nullptr) && VThread::isSimThread())
+        if ((scenes != nullptr) && scenes->getEventsEnabled() && VThread::isSimThread())
         {
             std::string orig("CoppeliaSim");
             if (originName != nullptr)

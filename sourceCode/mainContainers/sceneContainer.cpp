@@ -39,7 +39,7 @@ CSceneContainer::CSceneContainer()
 #endif
     _currentSceneIndex = -1;
     App::scene = nullptr;
-    _eventsEnabled = true;
+    _eventsDisabledLevel = 0;
     _eventSeq = 0;
     //_eventMutex.setName("eventMutex");
 }
@@ -279,7 +279,7 @@ void CSceneContainer::initialize()
 void CSceneContainer::deinitialize()
 {
     TRACE_INTERNAL;
-    _eventsEnabled = false;
+    _eventsDisabledLevel++;
     delete _events;
 
     copyBuffer->clearBuffer();
@@ -643,9 +643,19 @@ CCbor* CSceneContainer::_createGeneralEvent(const char* event, int64_t objectHan
     return (retVal);
 }
 
+void CSceneContainer::disableEvents()
+{
+    _eventsDisabledLevel++;
+}
+
+void CSceneContainer::enableEvents()
+{
+    _eventsDisabledLevel--;
+}
+
 bool CSceneContainer::getEventsEnabled() const
 {
-    return _eventsEnabled;
+    return (_eventsDisabledLevel == 0);
 }
 
 std::string CSceneContainer::getSessionId() const

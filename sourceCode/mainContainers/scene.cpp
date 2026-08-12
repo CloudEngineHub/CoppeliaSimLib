@@ -1244,7 +1244,7 @@ void CScene::callScripts(int callType, CInterfaceStack* inStack, CInterfaceStack
 
 void CScene::pushGenesisEvents()
 {
-    sceneObjects->embeddedScriptContainer->pushObjectGenesisEvents_mainScript(); // first
+    sceneObjects->embeddedScriptContainer->pushMainScriptGenesisEvent(); // first
 
     CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
     Obj::addObjectEventData(ev);
@@ -1716,11 +1716,12 @@ bool CScene::_loadModelOrScene(CSer& ar, bool selectLoaded, bool isScene, bool j
     // loadedObjectList
     // loadedCollectionList
     // ...
+    App::scenes->disableEvents();
     addGeneralObjectsToSceneAndPerformMappings(&loadedObjectList, &loadedCollectionList, &loadedCollisionList,
                                                &loadedDistanceList, &loadedIkGroupList, &pathPlanningTaskList,
                                                &loadedButtonBlockList, &loadedLuaScriptList, loadedTextureList,
                                                loadedDynMaterialList, !isScene, fileSimVersion, forceModelAsCopy);
-
+    std::vector<CSceneObject*> newObjects(loadedObjectList);
     CMesh::clearTempVerticesIndicesNormalsAndEdges();
 
     appendLoadOperationIssue(-1, nullptr, -1); // clear
@@ -1835,6 +1836,7 @@ bool CScene::_loadModelOrScene(CSer& ar, bool selectLoaded, bool isScene, bool j
                 std::string nn("autoConvertedSimulationScript_");
                 nn += loadedObjectList[i]->getObjectName_old();
                 sceneObjects->setObjectName_old(script, nn.c_str(), false);
+                newObjects.push_back(script);
             }
             detachedScript = sceneObjects->embeddedScriptContainer->getScriptFromObjectAttachedTo(sim_scripttype_simulation, loadedObjectList[i]->getObjectHandle());
             if (detachedScript != nullptr)
@@ -1855,6 +1857,7 @@ bool CScene::_loadModelOrScene(CSer& ar, bool selectLoaded, bool isScene, bool j
                 std::string nn("autoConvertedCustomizationScript_");
                 nn += loadedObjectList[i]->getObjectName_old();
                 sceneObjects->setObjectName_old(script, nn.c_str(), false);
+                newObjects.push_back(script);
             }
         }
     }
@@ -1888,6 +1891,14 @@ bool CScene::_loadModelOrScene(CSer& ar, bool selectLoaded, bool isScene, bool j
                             script->detachedScript = nullptr;
                         }
                         objectsToRemove.push_back(script->getObjectHandle());
+                        for (size_t j = 0; j < newObjects.size(); j++)
+                        {
+                            if (newObjects[j] == script)
+                            {
+                                newObjects.erase(newObjects.begin() + j);
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -1897,8 +1908,10 @@ bool CScene::_loadModelOrScene(CSer& ar, bool selectLoaded, bool isScene, bool j
 
     // Enable scripts (we previously didn't want to have them react to object add event, etc., during the load operation)
     sceneObjects->setScriptsTemporarilySuspended(false);
+    App::scenes->enableEvents();
 
-    return (true);
+    sceneObjects->sendSpecificCreationEvents(&newObjects, isScene);
+    return true;
 }
 
 bool CScene::_loadSimpleXmlSceneOrModel(CSer& ar)

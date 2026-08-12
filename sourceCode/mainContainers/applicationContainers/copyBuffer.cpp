@@ -235,6 +235,7 @@ int CCopyBuffer::pasteBuffer(bool intoLockedScene, int selectionMode)
     std::vector<CButtonBlock*> buttonBlk;
 
     // And we add everything to the scene:
+    App::scenes->disableEvents();
     App::scene->addGeneralObjectsToSceneAndPerformMappings(&objectCopy, &collectionCopy, &collisionCopy, &distanceCopy, &ikGroupCopy, &pathPlanningTsk, &buttonBlk, &luaScriptCopy, textureObjectCopy, dynMaterialObjectCopy, true, SIM_PROGRAM_VERSION_NB, false);
 
     // Enabled scripts (we previously don't wanted to have them react to object add event, etc., during the load operation)
@@ -277,6 +278,9 @@ int CCopyBuffer::pasteBuffer(bool intoLockedScene, int selectionMode)
 
     App::scenes->callScripts(sim_syscb_aftercreate, stack, nullptr);
     App::scenes->interfaceStackContainer->destroyStack(stack);
+
+    App::scenes->enableEvents();
+    App::scene->sceneObjects->sendSpecificCreationEvents(&objectCopy, false);
 
     return (1);
 }
