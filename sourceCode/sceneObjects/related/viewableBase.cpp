@@ -621,7 +621,7 @@ void CViewableBase::getVolumeVectors(C3Vector& n, C3Vector& f) const
     f = _volumeVectorFar;
 }
 
-void CViewableBase::addObjectEventData(CCbor* ev)
+void CViewableBase::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     ev->appendKeyDouble(prop(PropCamera::viewAngle).name, _viewAngle);
     ev->appendKeyDouble(prop(PropCamera::viewSize).name, _orthoViewSize);
@@ -640,7 +640,7 @@ void CViewableBase::addObjectEventData(CCbor* ev)
         ev->appendKeyVector3(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar);
     }
     ev->appendKeyInt32Array(prop(PropCamera::resolution).name, _resolution, 2);
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 int CViewableBase::setBoolProperty(const char* pName, bool pState)

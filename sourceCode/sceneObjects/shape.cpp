@@ -1523,7 +1523,7 @@ void CShape::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CShape::addObjectEventData(CCbor* ev)
+void CShape::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
         ev->openKeyMap(_objectTypeStr.c_str());
@@ -1632,14 +1632,19 @@ void CShape::addObjectEventData(CCbor* ev)
     }
     else
     {
-        std::vector<CMesh*> all;
-        std::vector<CPose> allTr;
-        getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, &allTr);
-        std::vector<int64_t> mmid;
-        mmid.resize(all.size());
-        for (size_t i = 0; i < all.size(); i++)
-            mmid[i] = all[i]->getObjectHandle();
-        ev->appendKeyHandleArray(prop(PropShape::meshes).name, mmid.data(), mmid.size());
+        if (sendAsChildlessOrphanMeshless)
+            ev->appendKeyHandleArray(prop(PropShape::meshes).name, (int*)nullptr, 0);
+        else
+        {
+            std::vector<CMesh*> all;
+            std::vector<CPose> allTr;
+            getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, &allTr);
+            std::vector<int64_t> mmid;
+            mmid.resize(all.size());
+            for (size_t i = 0; i < all.size(); i++)
+                mmid[i] = all[i]->getObjectHandle();
+            ev->appendKeyHandleArray(prop(PropShape::meshes).name, mmid.data(), mmid.size());
+        }
     }
 
     ev->appendKeyInt64(prop(PropShape::respondableMask).name, _respondableMask);
@@ -1669,7 +1674,7 @@ void CShape::addObjectEventData(CCbor* ev)
 
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // shape
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 void CShape::copyAttributesTo(CShape* target)

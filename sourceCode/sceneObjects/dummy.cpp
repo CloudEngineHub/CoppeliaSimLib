@@ -272,7 +272,7 @@ void CDummy::removeSceneDependencies()
     setLinkedDummyHandle(-1, false);
 }
 
-void CDummy::addObjectEventData(CCbor* ev)
+void CDummy::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -311,7 +311,7 @@ void CDummy::addObjectEventData(CCbor* ev)
 
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // dummy
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CDummy::copyYourself()

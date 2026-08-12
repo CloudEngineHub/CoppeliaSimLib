@@ -323,7 +323,7 @@ void CLight::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CLight::addObjectEventData(CCbor* ev)
+void CLight::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -358,7 +358,7 @@ void CLight::addObjectEventData(CCbor* ev)
     // todo
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // light
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CLight::copyYourself()

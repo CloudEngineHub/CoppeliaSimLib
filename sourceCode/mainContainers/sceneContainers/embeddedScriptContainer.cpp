@@ -524,12 +524,22 @@ bool CEmbeddedScriptContainer::addCommandToOutsideCommandQueues(int commandID, i
     return (true);
 }
 
-void CEmbeddedScriptContainer::pushObjectGenesisEvents() const
+void CEmbeddedScriptContainer::pushObjectGenesisEvents_oldAssociatedScripts() const
 {
     for (size_t i = 0; i < allScripts.size(); i++)
     {
         CDetachedScript* it = allScripts[i];
-        if (!it->getFlaggedForDestruction())
+        if ((!it->getFlaggedForDestruction()) && (it->getScriptType() != sim_scripttype_main))
+            it->pushObjectCreationEvent();
+    }
+}
+
+void CEmbeddedScriptContainer::pushObjectGenesisEvents_mainScript() const
+{
+    for (size_t i = 0; i < allScripts.size(); i++)
+    {
+        CDetachedScript* it = allScripts[i];
+        if ((!it->getFlaggedForDestruction()) && (it->getScriptType() == sim_scripttype_main))
             it->pushObjectCreationEvent();
     }
 }

@@ -810,7 +810,7 @@ void CPointCloud::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CPointCloud::addObjectEventData(CCbor* ev)
+void CPointCloud::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -832,7 +832,7 @@ void CPointCloud::addObjectEventData(CCbor* ev)
         ev->appendKeyDouble(prop(PropPointCloud::pointDisplayFraction).name, _pointDisplayRatio);
         _updatePointCloudEvent(false, ev);
     }
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CPointCloud::copyYourself()

@@ -2131,7 +2131,7 @@ void CVisionSensor::removeSceneDependencies()
     _detectableEntityHandle = -1;
 }
 
-void CVisionSensor::addObjectEventData(CCbor* ev)
+void CVisionSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -2176,10 +2176,10 @@ void CVisionSensor::addObjectEventData(CCbor* ev)
         ev->appendKeyDoubleArray(prop(PropVisionSensor::frustumCornerFar).name, _volumeVectorFar.data, 3);
         ev->appendKeyInt32Array(prop(PropVisionSensor::resolution).name, _resolution, 2);
         ev->closeArrayOrMap(); // visionSensor
-        CSceneObject::addObjectEventData(ev);
+        CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
     }
     else
-        CViewableBase::addObjectEventData(ev);
+        CViewableBase::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CVisionSensor::copyYourself()

@@ -200,6 +200,18 @@ void CCbor::appendHandleArray(const int64_t* h, size_t cnt)
     });
 }
 
+void CCbor::appendHandleArray(const std::vector<CSceneObject*>& h)
+{
+    _handleDataField();
+    std::vector<int64_t> arr;
+    arr.resize(h.size());
+    for (size_t i = 0; i < h.size(); i++)
+        arr[i] = h[i]->getObjectHandle();
+    NO_DATAFIELD_HANDLE({
+        appendHandleArray(arr.data(), arr.size());
+    });
+}
+
 void CCbor::appendHandleArray(const int* h, size_t cnt)
 {
     _handleDataField();
@@ -774,6 +786,53 @@ void CCbor::pushEvent()
     SEventInf* inf = &_eventInfos[_eventInfos.size() - 1];
     inf->size = _buff.size() - inf->pos;
 
+    if (_allowEventsReordering == 2)
+    {
+        _eventInfos_forReorder.push_back(inf[0]);
+        std::vector<unsigned char> v(_buff.begin() + inf->pos, _buff.end());
+        _buff_forReorder.push_back(v);
+        _buff.resize(inf->pos);
+        _eventInfos.pop_back();
+    }
+    else if (_allowEventsReordering == 1)
+    {
+        for (size_t i = 0; i < _eventInfos_forReorder.size(); i++)
+        {
+            auto& delayed = _eventInfos_forReorder[i];
+            size_t newPos = _buff.size();
+            size_t oldPos = delayed.pos;
+            size_t delta = newPos - oldPos;
+            for (size_t& fp : delayed.fieldPositions)
+                fp += delta;
+            delayed.pos = newPos;
+            _eventInfos.push_back(delayed);
+            _buff.insert(_buff.end(), _buff_forReorder[i].begin(), _buff_forReorder[i].end());
+        }
+        _buff_forReorder.clear();
+        _eventInfos_forReorder.clear();
+        _allowEventsReordering = 0;
+    }
+    else
+    {
+        if (!inf->unknownObjects.empty())
+        {
+            std::string txt;
+            txt += "Event '";
+            txt += inf->event + "' with handle ";
+            txt += std::to_string(inf->target) + " references following unknown object(s): ";
+            int cnt = 0;
+            for (int x : inf->unknownObjects)
+            {
+                if (cnt != 0)
+                    txt += ", ";
+                txt += std::to_string(x);
+                cnt++;
+            }
+            App::logMsg(sim_verbosity_errors, txt.c_str());
+            App::logScriptMsg(nullptr, sim_verbosity_scripterrors, txt.c_str());
+        }
+    }
+    /*
     if (!inf->unknownObjects.empty())
     {
         _eventInfos_forReorder.push_back(inf[0]);
@@ -817,6 +876,7 @@ void CCbor::pushEvent()
             }
         }
     }
+    */
 }
 
 void CCbor::popEvent(std::vector<unsigned char>& data, SEventInf& eventInfo)
@@ -837,6 +897,20 @@ void CCbor::pushEvent(const std::vector<unsigned char>& data, const SEventInf& e
     SEventInf* inf = &_eventInfos[_eventInfos.size() - 1];
     inf->pos = _buff.size();
     _buff.insert(_buff.end(), data.begin(), data.end());
+}
+
+void CCbor::allowEventsReordering(bool allow)
+{
+    if ((allow && (_allowEventsReordering == 2)) || ((!allow) && (_allowEventsReordering != 2)))
+    {
+        std::string txt("allowEventsReordering called in a cascaded manner.");
+        App::logMsg(sim_verbosity_errors, txt.c_str());
+        App::logScriptMsg(nullptr, sim_verbosity_scripterrors, txt.c_str());
+    }
+    if (allow)
+        _allowEventsReordering = 2;
+    else
+        _allowEventsReordering = 1;
 }
 
 int64_t CCbor::finalizeEvents(int64_t nextSeq, bool seqChanges, std::vector<SEventInf>* inf /*= nullptr*/)
@@ -942,6 +1016,12 @@ void CCbor::appendKeyHandleArray(const char* key, const int* h, size_t cnt)
 {
     appendText(key);
     appendHandleArray(h, cnt);
+}
+
+void CCbor::appendKeyHandleArray(const char* key, const std::vector<CSceneObject*>& h)
+{
+    appendText(key);
+    appendHandleArray(h);
 }
 
 void CCbor::appendKeyFloat(const char* key, float v)

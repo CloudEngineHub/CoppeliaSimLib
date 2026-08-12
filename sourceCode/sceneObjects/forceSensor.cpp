@@ -652,7 +652,7 @@ void CForceSensor::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CForceSensor::addObjectEventData(CCbor* ev)
+void CForceSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -700,7 +700,7 @@ void CForceSensor::addObjectEventData(CCbor* ev)
     ev->appendKeyDouble(prop(PropForceSensor::torqueThreshold).name, _torqueThreshold);
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // forceSensor
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CForceSensor::copyYourself()

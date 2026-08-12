@@ -1458,7 +1458,7 @@ void CSceneObject::removeSceneDependencies()
     _customReferencedOriginalHandles.clear();
 }
 
-void CSceneObject::addObjectEventData(CCbor* ev)
+void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     ev->appendKeyInt64(prop(PropSceneObject::layer).name, _visibilityLayer);
     ev->appendKeyInt64(prop(PropSceneObject::childOrder).name, _childOrder);
@@ -1477,7 +1477,10 @@ void CSceneObject::addObjectEventData(CCbor* ev)
     }
     else
     {
-        ev->appendKeyHandleArray(prop(PropSceneObject::children).name, ch.data(), ch.size());
+        if (sendAsChildlessOrphanMeshless)
+            ev->appendKeyHandleArray(prop(PropSceneObject::children).name, (int*)nullptr, 0);
+        else
+            ev->appendKeyHandleArray(prop(PropSceneObject::children).name, ch.data(), ch.size());
         ev->appendKeyVector3(prop(PropSceneObject::position).name, _localTransformation.X);
         ev->appendKeyPose(prop(PropSceneObject::pose).name, _localTransformation);
         ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, _localTransformation.Q);
@@ -1520,7 +1523,7 @@ void CSceneObject::addObjectEventData(CCbor* ev)
 
     int64_t pUid = -1;
     int pH = -1;
-    if (_parentObject != nullptr)
+    if ((_parentObject != nullptr) && (!sendAsChildlessOrphanMeshless))
     {
         pUid = _parentObject->getObjectUid();
         pH = _parentObject->getObjectHandle();
@@ -1651,21 +1654,29 @@ void CSceneObject::addObjectEventData(CCbor* ev)
     Obj::addObjectEventData(ev);
 }
 
-void CSceneObject::pushObjectCreationEvent()
+void CSceneObject::pushObjectCreationEvent(bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (_isInScene && App::scenes->getEventsEnabled())
     {
         CCbor* ev = App::scenes->createSceneObjectAddEvent(this);
-        addObjectEventData(ev);
+        addObjectEventData(ev, sendAsChildlessOrphanMeshless);
         App::scenes->pushEvent();
 
         if (_objectType == sim_sceneobject_shape)
         {
             std::vector<CMesh*> all;
             std::vector<CPose> allTr;
+            std::vector<int64_t> mmid;
             ((CShape*)this)->getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, &allTr);
+            mmid.resize(all.size());
             for (size_t i = 0; i < all.size(); i++)
+            {
                 all[i]->pushObjectCreationOrChangeEvent(_objectHandle, _objectUid, allTr[i], 0);
+                mmid[i] = all[i]->getObjectHandle();
+            }
+            CCbor* ev = App::scenes->createSceneObjectChangedEvent(getObjectHandle(), false, prop(PropShape::meshes).name, false);
+            ev->appendKeyHandleArray(prop(PropShape::meshes).name, mmid.data(), mmid.size());
+            App::scenes->pushEvent();
         }
         if (_objectType == sim_sceneobject_script)
             ((CScript*)this)->detachedScript->pushObjectCreationEvent();

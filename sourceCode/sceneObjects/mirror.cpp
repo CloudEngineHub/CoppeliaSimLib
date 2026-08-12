@@ -175,7 +175,7 @@ void CMirror::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CMirror::addObjectEventData(CCbor* ev)
+void CMirror::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -184,7 +184,7 @@ void CMirror::addObjectEventData(CCbor* ev)
     }
     else
         clipPlaneColor.addGenesisEventData(ev);
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CMirror::copyYourself()

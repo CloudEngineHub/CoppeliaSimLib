@@ -150,7 +150,7 @@ void CScript::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CScript::addObjectEventData(CCbor* ev)
+void CScript::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -180,7 +180,7 @@ void CScript::addObjectEventData(CCbor* ev)
     }
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // script
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CScript::copyYourself()

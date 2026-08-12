@@ -787,7 +787,7 @@ void COcTree::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void COcTree::addObjectEventData(CCbor* ev)
+void COcTree::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -809,7 +809,7 @@ void COcTree::addObjectEventData(CCbor* ev)
         ev->appendKeyBool(prop(PropOctree::showPoints).name, _usePointsInsteadOfCubes);
         _updateOctreeEvent(false, ev);
     }
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* COcTree::copyYourself()

@@ -280,7 +280,7 @@ void CProxSensor::removeSceneDependencies()
     _sensableObject_deprecated = -1;
 }
 
-void CProxSensor::addObjectEventData(CCbor* ev)
+void CProxSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
         ev->openKeyMap("proxSensor");
@@ -315,7 +315,7 @@ void CProxSensor::addObjectEventData(CCbor* ev)
     convexVolume->sendEventData(ev);
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // proxSensor
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CProxSensor::copyYourself()

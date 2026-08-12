@@ -2108,7 +2108,7 @@ void CJoint::removeSceneDependencies()
     setDependencyMasterJointHandle(-1);
 }
 
-void CJoint::addObjectEventData(CCbor* ev)
+void CJoint::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -2230,7 +2230,7 @@ void CJoint::addObjectEventData(CCbor* ev)
 
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // joint
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CJoint::copyYourself()

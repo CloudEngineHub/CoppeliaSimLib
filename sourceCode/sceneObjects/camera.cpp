@@ -946,7 +946,7 @@ void CCamera::removeSceneDependencies()
     setTrackedObjectHandle(-1);
 }
 
-void CCamera::addObjectEventData(CCbor* ev)
+void CCamera::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
@@ -995,10 +995,10 @@ void CCamera::addObjectEventData(CCbor* ev)
         ev->appendKeyDoubleArray(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar.data, 3);
         ev->appendKeyInt32Array(prop(PropCamera::resolution).name, _resolution, 2);
         ev->closeArrayOrMap(); //"camera"
-        CSceneObject::addObjectEventData(ev);
+        CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
     }
     else
-        CViewableBase::addObjectEventData(ev);
+        CViewableBase::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CCamera::copyYourself()

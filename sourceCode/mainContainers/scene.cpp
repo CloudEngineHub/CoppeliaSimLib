@@ -1244,6 +1244,8 @@ void CScene::callScripts(int callType, CInterfaceStack* inStack, CInterfaceStack
 
 void CScene::pushGenesisEvents()
 {
+    sceneObjects->embeddedScriptContainer->pushObjectGenesisEvents_mainScript(); // first
+
     CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
     Obj::addObjectEventData(ev);
 //    ev->appendKeyInt64(prop(PropObject::handle).name, _objectHandle);

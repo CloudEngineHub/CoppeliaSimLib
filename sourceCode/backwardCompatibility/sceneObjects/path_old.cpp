@@ -213,14 +213,14 @@ void CPath_old::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CPath_old::addObjectEventData(CCbor* ev)
+void CPath_old::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
     {
         ev->openKeyMap(_objectTypeStr.c_str());
         ev->closeArrayOrMap(); // path
     }
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CPath_old::copyYourself()

@@ -614,7 +614,7 @@ void CGraph::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CGraph::addObjectEventData(CCbor* ev)
+void CGraph::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
 {
     if (App::getEventProtocolVersion() == 2)
         ev->openKeyMap(_objectTypeStr.c_str());
@@ -635,7 +635,7 @@ void CGraph::addObjectEventData(CCbor* ev)
     }
     if (App::getEventProtocolVersion() == 2)
         ev->closeArrayOrMap(); // graph
-    CSceneObject::addObjectEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
 }
 
 CSceneObject* CGraph::copyYourself()

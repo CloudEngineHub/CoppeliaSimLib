@@ -11,7 +11,7 @@ class CMill : public CSceneObject
     virtual ~CMill();
 
     // Following functions are inherited from CSceneObject
-    void addObjectEventData(CCbor* ev) override;
+    void addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless = false) override;
     CSceneObject* copyYourself() override;
     void removeSceneDependencies() override;
     void scaleObject(double scalingFactor) override;

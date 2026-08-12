@@ -4267,13 +4267,19 @@ void App::pushGenesisEvents()
     {
         CSimFlavor::getStringVal(22); // trigger calculations and print mids
         CCbor* ev = scenes->createEvent(EVENTTYPE_GENESISBEGIN, -1, -1, nullptr, false);
-        _obj->addObjectEventData(ev);
         scenes->pushEvent();
+
+        if (scenes->sandboxScript != nullptr)
+            scenes->sandboxScript->pushObjectCreationEvent();
+
+        if (scenes->addOnScriptContainer != nullptr)
+            scenes->addOnScriptContainer->pushGenesisEvents();
 
         if (App::getEventProtocolVersion() == 2)
             ev = scenes->createEvent("appSession", sim_handle_app, sim_handle_app, nullptr, false);
         else
             ev = scenes->createEvent(EVENTTYPE_OBJECTCHANGED, sim_handle_app, sim_handle_app, nullptr, false);
+        _obj->addObjectEventData(ev);
         ev->appendKeyText(prop(PropApp::sessionId).name, scenes->getSessionId().c_str());
         ev->appendKeyInt64(prop(PropApp::protocolVersion).name, _eventProtocolVersion);
         ev->appendKeyText(prop(PropApp::productVersion).name, SIM_VERSION_STR_SHORT);
@@ -4285,6 +4291,9 @@ void App::pushGenesisEvents()
         ev->appendKeyInt64(prop(PropApp::flavor).name, -1);
 #endif
         ev->appendKeyInt64(prop(PropApp::qtVersion).name, (QT_VERSION >> 16) * 10000 + ((QT_VERSION >> 8) & 255) * 100 + (QT_VERSION & 255) * 1);
+
+        _appStorage->appendEventData(nullptr, ev);
+
         int sbh = -1;
         if (scenes->sandboxScript != nullptr)
             sbh = scenes->sandboxScript->getSceneObjectOrDetachedScriptHandle();
@@ -4417,18 +4426,6 @@ void App::pushGenesisEvents()
             ev->appendKeyInt64(prop(PropApp::idleFps).name, userSettings->getIdleFps());
 
         scenes->pushEvent();
-
-        ev = scenes->createEvent(EVENTTYPE_OBJECTCHANGED, sim_handle_app, sim_handle_app, nullptr, false);
-        //CPersistentDataContainer cont("appStorage.dat");
-        _appStorage->appendEventData(nullptr, ev);
-        scenes->pushEvent();
-
-        if (scenes->sandboxScript != nullptr)
-            scenes->sandboxScript->pushObjectCreationEvent();
-
-        if (scenes->addOnScriptContainer != nullptr)
-            scenes->addOnScriptContainer->pushGenesisEvents();
-
         scene->pushGenesisEvents();
 
         if (scenes->customObjects != nullptr)

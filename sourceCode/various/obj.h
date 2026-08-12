@@ -75,7 +75,7 @@ class Obj
     Obj(int64_t objectHandle, const char* objectTypeStr, const char* metaInfo);
     virtual ~Obj();
 
-    virtual void addObjectEventData(CCbor* ev);
+    virtual void addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless = false);
 
     void copyYourselfInto(Obj* it) const;
     int64_t getObjectHandle() const;

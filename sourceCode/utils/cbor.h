@@ -24,6 +24,8 @@ struct SEventInf
     std::set<int64_t> unknownObjects;
 };
 
+class CSceneObject;
+
 class CCbor
 {
   public:
@@ -41,6 +43,7 @@ class CCbor
     void appendInt64Array(const int64_t* v, size_t cnt);
     void appendHandleArray(const int64_t* h, size_t cnt);
     void appendHandleArray(const int* h, size_t cnt);
+    void appendHandleArray(const std::vector<CSceneObject*>& h);
     void appendFloat(float v);
     void appendFloatArray(const float* v, size_t cnt);
     void appendDouble(double v);
@@ -73,6 +76,7 @@ class CCbor
     void appendKeyInt64Array(const char* key, const int64_t* v, size_t cnt);
     void appendKeyHandleArray(const char* key, const int64_t* h, size_t cnt);
     void appendKeyHandleArray(const char* key, const int* h, size_t cnt);
+    void appendKeyHandleArray(const char* key, const std::vector<CSceneObject*>& h);
     void appendKeyFloat(const char* key, float v);
     void appendKeyFloatArray(const char* key, const float* v, size_t cnt);
     void appendKeyDouble(const char* key, double v);
@@ -108,6 +112,7 @@ class CCbor
     void pushEvent();
     void popEvent(std::vector<unsigned char>& data, SEventInf& eventInfo);
     void pushEvent(const std::vector<unsigned char>& data, const SEventInf& eventInfo);
+    void allowEventsReordering(bool allow);
     int64_t finalizeEvents(int64_t nextSeq, bool seqChanges, std::vector<SEventInf>* inf = nullptr);
     size_t getEventCnt() const;
     size_t getEventDepth() const;
@@ -133,6 +138,7 @@ class CCbor
     bool _nextIsKeyInData;
     bool _inDataField;
     int _handleDataFieldDisableLevel;
+    int _allowEventsReordering; // 0:no, 1:reorder, 2:buffer for reorder
 //    size_t _discardableEventCnt;
     std::vector<SEventInf> _eventInfos;
     std::vector<SEventInf> _eventInfos_forReorder;
