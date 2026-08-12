@@ -34,7 +34,7 @@ void Obj::copyYourselfInto(Obj* it) const
     it->_isSceneObject = _isSceneObject;
 }
 
-void Obj::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void Obj::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
     ev->appendKeyText(prop(PropObject::objectType).name, _objectTypeStr.c_str());
     ev->appendKeyTextArray(prop(PropObject::metaInfoSuperClass).name, _superClass);

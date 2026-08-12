@@ -175,16 +175,10 @@ void CMirror::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CMirror::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CMirror::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->openKeyMap(_objectTypeStr.c_str());
-        ev->closeArrayOrMap(); // mirror
-    }
-    else
-        clipPlaneColor.addGenesisEventData(ev);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    clipPlaneColor.addGenesisEventData(ev);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CMirror::copyYourself()

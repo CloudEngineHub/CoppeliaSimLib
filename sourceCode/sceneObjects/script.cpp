@@ -103,10 +103,7 @@ bool CScript::canDestroyNow()
             { // indicate that this object does not have any detachedScript attached anymore
                 const char* cmd = prop(PropScript::detachedScript).name;
                 CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-                if (App::getEventProtocolVersion() <= 3)
-                    ev->appendKeyInt64(cmd, -1);
-                else
-                    ev->appendKeyHandle(cmd, -1);
+                ev->appendKeyHandle(cmd, -1);
                 App::scenes->pushEvent();
             }
         }
@@ -150,37 +147,21 @@ void CScript::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CScript::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CScript::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->openKeyMap(_objectTypeStr.c_str());
-        ev->openKeyArray("colors");
-        float c[9];
-        _scriptColor.getColor(c, sim_materialcomponent_diffuse);
-        _scriptColor.getColor(c + 3, sim_materialcomponent_specular);
-        _scriptColor.getColor(c + 6, sim_materialcomponent_emission);
-        ev->appendFloatArray(c, 9);
-        ev->closeArrayOrMap(); // colors
-    }
-    else
-        _scriptColor.addGenesisEventData(ev);
+    _scriptColor.addGenesisEventData(ev);
     ev->appendKeyBool(prop(PropScript::resetAfterSimError).name, _resetAfterSimError);
     ev->appendKeyDouble(prop(PropScript::size).name, _scriptSize);
-    if (App::getEventProtocolVersion() <= 3)
-        ev->appendKeyInt64(prop(PropScript::detachedScript).name, detachedScript->getObjectHandle());
+    if (sendAsChildlessOrphanMeshlessDetachedscriptless)
+        ev->appendKeyHandle(prop(PropScript::detachedScript).name, -1);
     else
-    {
         ev->appendKeyHandle(prop(PropScript::detachedScript).name, detachedScript->getObjectHandle());
-        std::string st;
-        auto enum_value = magic_enum::enum_cast<scriptType>(detachedScript->getScriptType());
-        if (enum_value.has_value())
-            st = magic_enum::enum_name(enum_value.value()).data();
-        ev->appendKeyText(prop(PropScript::type).name, st.c_str());
-    }
-    if (App::getEventProtocolVersion() == 2)
-        ev->closeArrayOrMap(); // script
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    std::string st;
+    auto enum_value = magic_enum::enum_cast<scriptType>(detachedScript->getScriptType());
+    if (enum_value.has_value())
+        st = magic_enum::enum_name(enum_value.value()).data();
+    ev->appendKeyText(prop(PropScript::type).name, st.c_str());
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CScript::copyYourself()

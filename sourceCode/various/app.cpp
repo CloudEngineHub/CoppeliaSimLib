@@ -4275,10 +4275,7 @@ void App::pushGenesisEvents()
         if (scenes->addOnScriptContainer != nullptr)
             scenes->addOnScriptContainer->pushGenesisEvents();
 
-        if (App::getEventProtocolVersion() == 2)
-            ev = scenes->createEvent("appSession", sim_handle_app, sim_handle_app, nullptr, false);
-        else
-            ev = scenes->createEvent(EVENTTYPE_OBJECTCHANGED, sim_handle_app, sim_handle_app, nullptr, false);
+        ev = scenes->createEvent(EVENTTYPE_OBJECTCHANGED, sim_handle_app, sim_handle_app, nullptr, false);
         _obj->addObjectEventData(ev);
         ev->appendKeyText(prop(PropApp::sessionId).name, scenes->getSessionId().c_str());
         ev->appendKeyInt64(prop(PropApp::protocolVersion).name, _eventProtocolVersion);
@@ -4297,10 +4294,7 @@ void App::pushGenesisEvents()
         int sbh = -1;
         if (scenes->sandboxScript != nullptr)
             sbh = scenes->sandboxScript->getSceneObjectOrDetachedScriptHandle();
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyInt64(prop(PropApp::sandbox).name, sbh);
-        else
-            ev->appendKeyHandle(prop(PropApp::sandbox).name, sbh);
+        ev->appendKeyHandle(prop(PropApp::sandbox).name, sbh);
         if (instancesList != nullptr)
         {
             ev->appendKeyInt64(prop(PropApp::processId).name, instancesList->thisInstanceId());
@@ -4314,21 +4308,7 @@ void App::pushGenesisEvents()
         ev->appendKeyTextArray(prop(PropApp::enumTypes).name, _enumTypes);
 
         std::vector<int> addOnList(scenes->addOnScriptContainer->getAddOnHandles());
-        if (App::getEventProtocolVersion() <= 3)
-        {
-            ev->appendKeyInt32Array(prop(PropApp::addOns).name, addOnList.data(), addOnList.size());
-            ev->appendKeyText("appArg1", getApplicationArgument(0).c_str());
-            ev->appendKeyText("appArg2", getApplicationArgument(1).c_str());
-            ev->appendKeyText("appArg3", getApplicationArgument(2).c_str());
-            ev->appendKeyText("appArg4", getApplicationArgument(3).c_str());
-            ev->appendKeyText("appArg5", getApplicationArgument(4).c_str());
-            ev->appendKeyText("appArg6", getApplicationArgument(5).c_str());
-            ev->appendKeyText("appArg7", getApplicationArgument(6).c_str());
-            ev->appendKeyText("appArg8", getApplicationArgument(7).c_str());
-            ev->appendKeyText("appArg9", getApplicationArgument(8).c_str());
-        }
-        else
-            ev->appendKeyHandleArray(prop(PropApp::addOns).name, addOnList.data(), addOnList.size());
+        ev->appendKeyHandleArray(prop(PropApp::addOns).name, addOnList.data(), addOnList.size());
 
         std::vector<int64_t> l;
         scenes->customObjects->getAllObjectHandles(l);
@@ -4349,38 +4329,19 @@ void App::pushGenesisEvents()
 
         if (folders != nullptr)
         {
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyText("appPath", folders->getExecutablePath().c_str());
-                ev->appendKeyText("tempPath", folders->getTempDataPath().c_str());
-                ev->appendKeyText("sceneTempPath", folders->getSceneTempDataPath().c_str());
-                ev->appendKeyText("settingsPath", folders->getUserSettingsPath().c_str());
-                ev->appendKeyText("luaPath", folders->getLuaPath().c_str());
-                ev->appendKeyText("pythonPath", folders->getPythonPath().c_str());
-                ev->appendKeyText("mujocoPath", folders->getMujocoPath().c_str());
-                ev->appendKeyText("systemPath", folders->getSystemPath().c_str());
-                ev->appendKeyText("resourcePath", folders->getResourcesPath().c_str());
-                ev->appendKeyText("addOnPath", folders->getAddOnPath().c_str());
-                ev->appendKeyText("scenePath", folders->getScenesPath().c_str());
-                ev->appendKeyText("modelPath", folders->getModelsPath().c_str());
-                ev->appendKeyText("importExportPath", folders->getImportExportPath().c_str());
-            }
-            else
-            {
-                ev->appendKeyText(prop(PropApp::appDir).name, folders->getExecutablePath().c_str());
-                ev->appendKeyText(prop(PropApp::tempDir).name, folders->getTempDataPath().c_str());
-                ev->appendKeyText(prop(PropApp::sceneTempDir).name, folders->getSceneTempDataPath().c_str());
-                ev->appendKeyText(prop(PropApp::settingsDir).name, folders->getUserSettingsPath().c_str());
-                ev->appendKeyText(prop(PropApp::luaDir).name, folders->getLuaPath().c_str());
-                ev->appendKeyText(prop(PropApp::pythonDir).name, folders->getPythonPath().c_str());
-                ev->appendKeyText(prop(PropApp::mujocoDir).name, folders->getMujocoPath().c_str());
-                ev->appendKeyText(prop(PropApp::systemDir).name, folders->getSystemPath().c_str());
-                ev->appendKeyText(prop(PropApp::resourceDir).name, folders->getResourcesPath().c_str());
-                ev->appendKeyText(prop(PropApp::addOnDir).name, folders->getAddOnPath().c_str());
-                ev->appendKeyText(prop(PropApp::sceneDir).name, folders->getScenesPath().c_str());
-                ev->appendKeyText(prop(PropApp::modelDir).name, folders->getModelsPath().c_str());
-                ev->appendKeyText(prop(PropApp::importExportDir).name, folders->getImportExportPath().c_str());
-            }
+            ev->appendKeyText(prop(PropApp::appDir).name, folders->getExecutablePath().c_str());
+            ev->appendKeyText(prop(PropApp::tempDir).name, folders->getTempDataPath().c_str());
+            ev->appendKeyText(prop(PropApp::sceneTempDir).name, folders->getSceneTempDataPath().c_str());
+            ev->appendKeyText(prop(PropApp::settingsDir).name, folders->getUserSettingsPath().c_str());
+            ev->appendKeyText(prop(PropApp::luaDir).name, folders->getLuaPath().c_str());
+            ev->appendKeyText(prop(PropApp::pythonDir).name, folders->getPythonPath().c_str());
+            ev->appendKeyText(prop(PropApp::mujocoDir).name, folders->getMujocoPath().c_str());
+            ev->appendKeyText(prop(PropApp::systemDir).name, folders->getSystemPath().c_str());
+            ev->appendKeyText(prop(PropApp::resourceDir).name, folders->getResourcesPath().c_str());
+            ev->appendKeyText(prop(PropApp::addOnDir).name, folders->getAddOnPath().c_str());
+            ev->appendKeyText(prop(PropApp::sceneDir).name, folders->getScenesPath().c_str());
+            ev->appendKeyText(prop(PropApp::modelDir).name, folders->getModelsPath().c_str());
+            ev->appendKeyText(prop(PropApp::importExportDir).name, folders->getImportExportPath().c_str());
         }
 
         scenes->customAppData_volatile.appendEventData(nullptr, ev);
@@ -4389,11 +4350,6 @@ void App::pushGenesisEvents()
         {
             ev->appendKeyText(prop(PropApp::defaultPython).name, userSettings->defaultPython.c_str());
             ev->appendKeyText(prop(PropApp::sandboxLang).name, userSettings->preferredSandboxLang.c_str());
-        }
-        if (App::getEventProtocolVersion() == 2)
-        {
-            scenes->pushEvent();
-            ev = scenes->createEvent("appSettingsChanged", sim_handle_app, sim_handle_app, nullptr, false);
         }
         if (userSettings != nullptr)
         {

@@ -217,18 +217,9 @@ void CProxSensor::_setDetectedObjectAndInfo(int h, const C3Vector* detectedPt /*
         {
             const char* cmd = prop(PropProximitySensor::detectedObject).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyInt64(prop(PropProximitySensor::DEPRECATED_detectedObjectHandle).name, _detectedObjectHandle);
-                ev->appendKeyDoubleArray(prop(PropProximitySensor::detectedPoint).name, _detectedPoint.data, 3);
-                ev->appendKeyDoubleArray(prop(PropProximitySensor::detectedNormal).name, _detectedNormalVector.data, 3);
-            }
-            else
-            {
-                ev->appendKeyHandle(prop(PropProximitySensor::detectedObject).name, _detectedObjectHandle);
-                ev->appendKeyVector3(prop(PropProximitySensor::detectedPoint).name, _detectedPoint);
-                ev->appendKeyVector3(prop(PropProximitySensor::detectedNormal).name, _detectedNormalVector);
-            }
+            ev->appendKeyHandle(prop(PropProximitySensor::detectedObject).name, _detectedObjectHandle);
+            ev->appendKeyVector3(prop(PropProximitySensor::detectedPoint).name, _detectedPoint);
+            ev->appendKeyVector3(prop(PropProximitySensor::detectedNormal).name, _detectedNormalVector);
             App::scenes->pushEvent();
         }
     }
@@ -280,15 +271,10 @@ void CProxSensor::removeSceneDependencies()
     _sensableObject_deprecated = -1;
 }
 
-void CProxSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CProxSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-        ev->openKeyMap("proxSensor");
-    else
-    {
-        volumeColor.addGenesisEventData(ev);
-        detectionRayColor.addGenesisEventData(ev);
-    }
+    volumeColor.addGenesisEventData(ev);
+    detectionRayColor.addGenesisEventData(ev);
     ev->appendKeyBool(prop(PropProximitySensor::frontFaceDetection).name, _frontFaceDetection);
     ev->appendKeyBool(prop(PropProximitySensor::backFaceDetection).name, _backFaceDetection);
     ev->appendKeyBool(prop(PropProximitySensor::exactMode).name, _exactMode);
@@ -296,26 +282,13 @@ void CProxSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshle
     ev->appendKeyBool(prop(PropProximitySensor::showVolume).name, _showVolume);
     ev->appendKeyBool(prop(PropProximitySensor::randomizedDetection).name, _randomizedDetection);
     ev->appendKeyDouble(prop(PropProximitySensor::angleThreshold).name, _angleThreshold);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyDouble("sensorPointSize", _proxSensorSize);
-        ev->appendKeyInt64("sensorType", sensorType);
-        ev->appendKeyInt64("detectedObjectHandle", _detectedObjectHandle);
-        ev->appendKeyDoubleArray(prop(PropProximitySensor::detectedPoint).name, _detectedPoint.data, 3);
-        ev->appendKeyDoubleArray(prop(PropProximitySensor::detectedNormal).name, _detectedNormalVector.data, 3);
-    }
-    else
-    {
-        ev->appendKeyDouble(prop(PropProximitySensor::size).name, _proxSensorSize);
-        ev->appendKeyText(prop(PropProximitySensor::sensorType).name, getSensorTypeStr().c_str());
-        ev->appendKeyHandle(prop(PropProximitySensor::detectedObject).name, _detectedObjectHandle);
-        ev->appendKeyVector3(prop(PropProximitySensor::detectedPoint).name, _detectedPoint);
-        ev->appendKeyVector3(prop(PropProximitySensor::detectedNormal).name, _detectedNormalVector);
-    }
+    ev->appendKeyDouble(prop(PropProximitySensor::size).name, _proxSensorSize);
+    ev->appendKeyText(prop(PropProximitySensor::sensorType).name, getSensorTypeStr().c_str());
+    ev->appendKeyHandle(prop(PropProximitySensor::detectedObject).name, _detectedObjectHandle);
+    ev->appendKeyVector3(prop(PropProximitySensor::detectedPoint).name, _detectedPoint);
+    ev->appendKeyVector3(prop(PropProximitySensor::detectedNormal).name, _detectedNormalVector);
     convexVolume->sendEventData(ev);
-    if (App::getEventProtocolVersion() == 2)
-        ev->closeArrayOrMap(); // proxSensor
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CProxSensor::copyYourself()
@@ -1158,10 +1131,7 @@ void CProxSensor::setProxSensorSize(double newSize)
         {
             const char* cmd = prop(PropProximitySensor::size).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDouble("sensorPointSize", _proxSensorSize);
-            else
-                ev->appendKeyDouble(cmd, _proxSensorSize);
+            ev->appendKeyDouble(cmd, _proxSensorSize);
             App::scenes->pushEvent();
         }
         computeBoundingBox();

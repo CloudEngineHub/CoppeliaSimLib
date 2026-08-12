@@ -556,10 +556,7 @@ void CJoint::setTargetVelocity(double v)
             {
                 const char* cmd = prop(PropJoint::targetVel).name;
                 CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-                if (App::getEventProtocolVersion() <= 3)
-                    ev->appendKeyDouble("targetVel", _targetVel);
-                else
-                    ev->appendKeyDouble(cmd, _targetVel);
+                ev->appendKeyDouble(cmd, _targetVel);
                 App::scenes->pushEvent();
             }
             if (_targetVel * _targetForce < 0.0)
@@ -622,10 +619,7 @@ void CJoint::setKc(double k_param, double c_param)
         {
             const char* cmd = prop(PropJoint::springDamperParams).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDoubleArray("springDamperParams", _dynCtrl_kc, 2);
-            else
-                ev->appendKeyDoubleArray(cmd, _dynCtrl_kc, 2);
+            ev->appendKeyDoubleArray(cmd, _dynCtrl_kc, 2);
             App::scenes->pushEvent();
         }
     }
@@ -645,10 +639,7 @@ void CJoint::setTargetPosition(double pos)
             {
                 const char* cmd = prop(PropJoint::targetPos).name;
                 CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-                if (App::getEventProtocolVersion() <= 3)
-                    ev->appendKeyDouble("targetPos", _targetPos);
-                else
-                    ev->appendKeyDouble(cmd, _targetPos);
+                ev->appendKeyDouble(cmd, _targetPos);
                 App::scenes->pushEvent();
             }
         }
@@ -674,17 +665,9 @@ void CJoint::setDependencyMasterJointHandle(int depJointID)
         _dependencyMasterJointHandle = depJointID;
         if (_isInScene && App::scenes->getEventsEnabled())
         {
-            if (App::getEventProtocolVersion() == 3)
-            {
-                CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, nullptr, true);
-                ev->appendKeyInt64("dependencyMasterHandle", _dependencyMasterJointHandle);
-            }
-            else
-            {
-                const char* cmd = prop(PropJoint::dependencyMaster).name;
-                CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-                ev->appendKeyHandle(cmd, _dependencyMasterJointHandle);
-            }
+            const char* cmd = prop(PropJoint::dependencyMaster).name;
+            CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
+            ev->appendKeyHandle(cmd, _dependencyMasterJointHandle);
             App::scenes->pushEvent();
         }
         App::scene->sceneObjects->actualizeObjectInformation();
@@ -709,8 +692,6 @@ void CJoint::setDependencyMasterJointHandle(int depJointID)
             }
             updateSelfAsSlave();
         }
-        if (App::getEventProtocolVersion() == 2)
-            _sendDependencyChange_old();
     }
 }
 
@@ -781,8 +762,6 @@ void CJoint::setDependencyParams(double off, double mult)
                 ev->appendKeyDoubleArray(cmd, arr, 2);
                 App::scenes->pushEvent();
             }
-            if (App::getEventProtocolVersion() == 2)
-                _sendDependencyChange_old();
             _setDependencyJointOffset_sendOldIk(off);
             _setDependencyJointMult_sendOldIk(mult);
             updateSelfAsSlave();
@@ -1225,14 +1204,7 @@ bool CJoint::setScrewLead(double lead)
                     const char* cmd = prop(PropJoint::screwLead).name;
                     CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
                     ev->appendKeyDouble(cmd, _screwLead);
-                    if (App::getEventProtocolVersion() <= 3)
-                    {
-                        double p[7];
-                        getIntrinsicTransformation(true).getData(p, true);
-                        ev->appendKeyDoubleArray(prop(PropJoint::intrinsicPose).name, p, 7);
-                    }
-                    else
-                        ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
+                    ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
                     App::scenes->pushEvent();
                 }
                 _setScrewPitch_sendOldIk(lead / piValT2);
@@ -1291,19 +1263,10 @@ void CJoint::setInterval(double minV, double maxV)
             const char* cmd = prop(PropJoint::bounds).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
             double arr[2] = {_posMin, _posMin + _posRange};
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyDouble("min", _posMin);
-                ev->appendKeyDouble("range", _posRange);
-                ev->appendKeyDoubleArray("interval", arr, 2);
-            }
+            if ((_isCyclic && (_jointType == sim_joint_revolute)) || (_jointType == sim_joint_spherical))
+                ev->appendKeyDoubleArray(cmd, nullptr, 0);
             else
-            {
-                if ((_isCyclic && (_jointType == sim_joint_revolute)) || (_jointType == sim_joint_spherical))
-                    ev->appendKeyDoubleArray(cmd, nullptr, 0);
-                else
-                    ev->appendKeyDoubleArray(cmd, arr, 2);
-            }
+                ev->appendKeyDoubleArray(cmd, arr, 2);
             App::scenes->pushEvent();
         }
         _setPositionIntervalMin_sendOldIk(_posMin);
@@ -1353,16 +1316,8 @@ void CJoint::setSize(double l /*= 0.0*/, double d /*= 0.0*/)
         {
             const char* cmd = prop(PropJoint::length).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyDouble("jointLength", _length);
-                ev->appendKeyDouble("jointDiameter", _diameter);
-            }
-            else
-            {
-                ev->appendKeyDouble(cmd, _length);
-                ev->appendKeyDouble(prop(PropJoint::diameter).name, _diameter);
-            }
+            ev->appendKeyDouble(cmd, _length);
+            ev->appendKeyDouble(prop(PropJoint::diameter).name, _diameter);
             App::scenes->pushEvent();
         }
     }
@@ -1458,10 +1413,7 @@ void CJoint::_setForceOrTorque(bool valid, double f /*= 0.0*/)
         {
             const char* cmd = prop(PropJoint::jointForce).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDouble("jointForce", _lastForceOrTorque_dynStep);
-            else
-                ev->appendKeyDouble(cmd, _lastForceOrTorque_dynStep);
+            ev->appendKeyDouble(cmd, _lastForceOrTorque_dynStep);
             App::scenes->pushEvent();
         }
     }
@@ -1480,10 +1432,7 @@ void CJoint::_setFilteredForceOrTorque(bool valid, double f /*= 0.0*/)
         {
             const char* cmd = prop(PropJoint::averageJointForce).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDouble("averageJointForce", _filteredForceOrTorque);
-            else
-                ev->appendKeyDouble(cmd, _filteredForceOrTorque);
+            ev->appendKeyDouble(cmd, _filteredForceOrTorque);
             App::scenes->pushEvent();
         }
     }
@@ -2108,111 +2057,38 @@ void CJoint::removeSceneDependencies()
     setDependencyMasterJointHandle(-1);
 }
 
-void CJoint::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CJoint::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->openKeyMap(_objectTypeStr.c_str());
-        ev->openKeyArray("colors");
-        float c[9];
-        _color.getColor(c, sim_materialcomponent_diffuse);
-        _color.getColor(c + 3, sim_materialcomponent_specular);
-        _color.getColor(c + 6, sim_materialcomponent_emission);
-        ev->appendFloatArray(c, 9);
-        _color_removeSoon.getColor(c, sim_materialcomponent_diffuse);
-        _color_removeSoon.getColor(c + 3, sim_materialcomponent_specular);
-        _color_removeSoon.getColor(c + 6, sim_materialcomponent_emission);
-        ev->appendFloatArray(c, 9);
-        ev->closeArrayOrMap(); // colors
-        ev->appendKeyDouble("length", _length);
-        ev->appendKeyDouble("diameter", _diameter);
-        ev->appendKeyDouble("min", _posMin);
-        ev->appendKeyDouble("range", _posRange);
-        ev->openKeyMap("dependency");
-        if (_dependencyMasterJointHandle != -1)
-        {
-            CSceneObject* master = App::scene->sceneObjects->getJointFromHandle(_dependencyMasterJointHandle);
-            if (master != nullptr)
-            {
-                ev->appendKeyInt64("masterUid", master->getObjectUid());
-                ev->appendKeyDouble("mult", _dependencyJointMult);
-                ev->appendKeyDouble("off", _dependencyJointOffset);
-            }
-        }
-        ev->closeArrayOrMap(); // dependency
-    }
-    else
-        _color.addGenesisEventData(ev);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyInt64("jointType", _jointType);
-        ev->appendKeyInt64("jointMode", _jointMode);
-        ev->appendKeyInt64("dynCtrlMode", _dynCtrlMode);
-        ev->appendKeyInt64("dynVelMode", _dynSmoothMotionProfile);
-        ev->appendKeyInt64("dynPosMode", _dynSmoothMotionProfile);
-        ev->appendKeyInt64("dependencyMasterHandle", _dependencyMasterJointHandle);
-        ev->appendKeyDouble("targetPos", _targetPos);
-        ev->appendKeyDouble("targetVel", _targetVel);
-    }
-    else
-    {
-        ev->appendKeyText(prop(PropJoint::jointType).name, getJointTypeStr().c_str());
-        ev->appendKeyInt64(prop(PropJoint::jointMode).name, _jointMode);
-        ev->appendKeyInt64(prop(PropJoint::dynCtrlMode).name, _dynCtrlMode);
-        ev->appendKeyBool(prop(PropJoint::dynSmoothMotionProfile).name, _dynSmoothMotionProfile);
-        ev->appendKeyHandle(prop(PropJoint::dependencyMaster).name, _dependencyMasterJointHandle);
-        ev->appendKeyDouble(prop(PropJoint::targetPos).name, _targetPos);
-        ev->appendKeyDouble(prop(PropJoint::targetVel).name, _targetVel);
-    }
+    _color.addGenesisEventData(ev);
+    ev->appendKeyText(prop(PropJoint::jointType).name, getJointTypeStr().c_str());
+    ev->appendKeyInt64(prop(PropJoint::jointMode).name, _jointMode);
+    ev->appendKeyInt64(prop(PropJoint::dynCtrlMode).name, _dynCtrlMode);
+    ev->appendKeyBool(prop(PropJoint::dynSmoothMotionProfile).name, _dynSmoothMotionProfile);
+    ev->appendKeyHandle(prop(PropJoint::dependencyMaster).name, _dependencyMasterJointHandle);
+    ev->appendKeyDouble(prop(PropJoint::targetPos).name, _targetPos);
+    ev->appendKeyDouble(prop(PropJoint::targetVel).name, _targetVel);
     double arr[2] = {_dependencyJointOffset, _dependencyJointMult};
     ev->appendKeyDoubleArray(prop(PropJoint::dependencyParams).name, arr, 2);
     ev->appendKeyBool(prop(PropJoint::cyclic).name, _isCyclic);
     ev->appendKeyBool(prop(PropJoint::enforceLimits).name, _enforceLimits);
     ev->appendKeyDouble(prop(PropJoint::targetForce).name, _targetForce);
 
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyDouble("jointForce", _lastForceOrTorque_dynStep);
-        ev->appendKeyDouble("averageJointForce", _filteredForceOrTorque);
-        double q[4];
-        _sphericalTransf.getData(q, true);
-        ev->appendKeyDoubleArray(prop(PropJoint::quaternion).name, q, 4);
-    }
-    else
-    {
-        ev->appendKeyDouble(prop(PropJoint::jointForce).name, _lastForceOrTorque_dynStep);
-        ev->appendKeyDouble(prop(PropJoint::averageJointForce).name, _filteredForceOrTorque);
-        ev->appendKeyQuaternion(prop(PropJoint::quaternion).name, _sphericalTransf);
-    }
+    ev->appendKeyDouble(prop(PropJoint::jointForce).name, _lastForceOrTorque_dynStep);
+    ev->appendKeyDouble(prop(PropJoint::averageJointForce).name, _filteredForceOrTorque);
+    ev->appendKeyQuaternion(prop(PropJoint::quaternion).name, _sphericalTransf);
     ev->appendKeyDouble(prop(PropJoint::position).name, _pos);
     ev->appendKeyDouble(prop(PropJoint::screwLead).name, _screwLead);
     double interv[2];
     getInterval(interv[0], interv[1]);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        double p[7];
-        double p2[7];
-        _intrinsicTransformationError.getData(p, true);
-        getIntrinsicTransformation(true).getData(p2, true);
-        ev->appendKeyDoubleArray(prop(PropJoint::intrinsicError).name, p, 7);
-        ev->appendKeyDoubleArray(prop(PropJoint::intrinsicPose).name, p2, 7);
-        ev->appendKeyDouble("jointLength", _length);
-        ev->appendKeyDouble("jointDiameter", _diameter);
-        ev->appendKeyDoubleArray("springDamperParams", _dynCtrl_kc, 2);
-        ev->appendKeyDoubleArray("interval", interv, 2);
-    }
+    ev->appendKeyPose(prop(PropJoint::intrinsicError).name, _intrinsicTransformationError);
+    ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
+    ev->appendKeyDouble(prop(PropJoint::length).name, _length);
+    ev->appendKeyDouble(prop(PropJoint::diameter).name, _diameter);
+    ev->appendKeyDoubleArray(prop(PropJoint::springDamperParams).name, _dynCtrl_kc, 2);
+    if ((_isCyclic && (_jointType == sim_joint_revolute)) || (_jointType == sim_joint_spherical))
+        ev->appendKeyDoubleArray(prop(PropJoint::bounds).name, nullptr, 0);
     else
-    {
-        ev->appendKeyPose(prop(PropJoint::intrinsicError).name, _intrinsicTransformationError);
-        ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
-        ev->appendKeyDouble(prop(PropJoint::length).name, _length);
-        ev->appendKeyDouble(prop(PropJoint::diameter).name, _diameter);
-        ev->appendKeyDoubleArray(prop(PropJoint::springDamperParams).name, _dynCtrl_kc, 2);
-        if ((_isCyclic && (_jointType == sim_joint_revolute)) || (_jointType == sim_joint_spherical))
-            ev->appendKeyDoubleArray(prop(PropJoint::bounds).name, nullptr, 0);
-        else
-            ev->appendKeyDoubleArray(prop(PropJoint::bounds).name, arr, 2);
-    }
+        ev->appendKeyDoubleArray(prop(PropJoint::bounds).name, arr, 2);
 
     ev->appendKeyDoubleArray(prop(PropJoint::maxVelAccelJerk).name, _maxVelAccelJerk, 3);
     ev->appendKeyDouble(prop(PropJoint::calcVelocity).name, _velCalc_vel);
@@ -2228,9 +2104,7 @@ void CJoint::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*
     setFloatArrayProperty(nullptr, dummy2, ev);
     _sendEngineString(ev);
 
-    if (App::getEventProtocolVersion() == 2)
-        ev->closeArrayOrMap(); // joint
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CJoint::copyYourself()
@@ -4145,10 +4019,7 @@ bool CJoint::setJointMode_noDynMotorTargetPosCorrection(int newMode)
         {
             const char* cmd = prop(PropJoint::jointMode).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt64("jointMode", _jointMode);
-            else
-                ev->appendKeyInt64(cmd, _jointMode);
+            ev->appendKeyInt64(cmd, _jointMode);
             App::scenes->pushEvent();
         }
         if (_jointMode == sim_jointmode_dependent)
@@ -4220,20 +4091,8 @@ void CJoint::setSphericalTransformation(const CQuaternion& tr)
         {
             const char* cmd = prop(PropJoint::quaternion).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                double q[4];
-                _sphericalTransf.getData(q, true);
-                double p[7];
-                getIntrinsicTransformation(true).getData(p, true);
-                ev->appendKeyDoubleArray(cmd, q, 4);
-                ev->appendKeyDoubleArray(prop(PropJoint::intrinsicPose).name, p, 7);
-            }
-            else
-            {
-                ev->appendKeyQuaternion(cmd, _sphericalTransf);
-                ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
-            }
+            ev->appendKeyQuaternion(cmd, _sphericalTransf);
+            ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
             App::scenes->pushEvent();
         }
         _setSphericalTransformation_sendOldIk(_sphericalTransf);
@@ -4324,14 +4183,7 @@ void CJoint::setPosition(double pos, const CJoint* masterJoint /*=nullptr*/, boo
             const char* cmd = prop(PropJoint::position).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
             ev->appendKeyDouble(cmd, _pos);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                double p[7];
-                getIntrinsicTransformation(true).getData(p, true);
-                ev->appendKeyDoubleArray(prop(PropJoint::intrinsicPose).name, p, 7);
-            }
-            else
-                ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
+            ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
             App::scenes->pushEvent();
         }
         _setPosition_sendOldIk(pos);
@@ -4418,10 +4270,7 @@ void CJoint::setDynCtrlMode(int mode)
         {
             const char* cmd = prop(PropJoint::dynCtrlMode).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt64("dynCtrlMode", _dynCtrlMode);
-            else
-                ev->appendKeyInt64(cmd, _dynCtrlMode);
+            ev->appendKeyInt64(cmd, _dynCtrlMode);
             App::scenes->pushEvent();
         }
         if ((_dynCtrlMode == sim_jointdynctrl_spring) || (_dynCtrlMode == sim_jointdynctrl_springcb) ||
@@ -4460,13 +4309,7 @@ void CJoint::setDynSmoothMotionProfile(bool enabled)
         {
             const char* cmd = prop(PropJoint::dynSmoothMotionProfile).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyInt64("dynVelMode", _dynSmoothMotionProfile);
-                ev->appendKeyInt64("dynPosMode", _dynSmoothMotionProfile);
-            }
-            else
-                ev->appendKeyBool(cmd, _dynSmoothMotionProfile);
+            ev->appendKeyBool(cmd, _dynSmoothMotionProfile);
             App::scenes->pushEvent();
         }
     }
@@ -4813,20 +4656,8 @@ void CJoint::setIntrinsicTransformationError(const CPose& tr)
         {
             const char* cmd = prop(PropJoint::intrinsicError).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                double p[7];
-                double p2[7];
-                _intrinsicTransformationError.getData(p, true);
-                getIntrinsicTransformation(true).getData(p2, true);
-                ev->appendKeyDoubleArray(cmd, p, 7);
-                ev->appendKeyDoubleArray(prop(PropJoint::intrinsicPose).name, p2, 7);
-            }
-            else
-            {
-                ev->appendKeyPose(cmd, _intrinsicTransformationError);
-                ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
-            }
+            ev->appendKeyPose(cmd, _intrinsicTransformationError);
+            ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
             App::scenes->pushEvent();
         }
     }
@@ -6339,10 +6170,7 @@ void CJoint::_sendEngineString(CCbor* eev /*= nullptr*/)
         std::string current(prope.getObjectProperties(_objectHandle));
         if (ev == nullptr)
             ev = App::scenes->createSceneObjectChangedEvent(this, false, prop(PropJoint::engineProperties).name, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyText("engineProperties", current.c_str());
-        else
-            ev->appendKeyText(prop(PropJoint::engineProperties).name, current.c_str());
+        ev->appendKeyText(prop(PropJoint::engineProperties).name, current.c_str());
         if ((ev != nullptr) && (eev == nullptr))
             App::scenes->pushEvent();
     }

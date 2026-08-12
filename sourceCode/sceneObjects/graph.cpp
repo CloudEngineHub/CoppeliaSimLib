@@ -75,10 +75,7 @@ void CGraph::_setBackgroundColor(const float col[3])
         {
             const char* cmd = prop(PropGraph::backgroundColor).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyFloatArray(cmd, backgroundColor, 3);
-            else
-                ev->appendKeyColor3(cmd, backgroundColor);
+            ev->appendKeyColor3(cmd, backgroundColor);
             App::scenes->pushEvent();
         }
     }
@@ -95,10 +92,7 @@ void CGraph::_setForegroundColor(const float col[3])
         {
             const char* cmd = prop(PropGraph::foregroundColor).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyFloatArray(cmd, foregroundColor, 3);
-            else
-                ev->appendKeyColor3(cmd, foregroundColor);
+            ev->appendKeyColor3(cmd, foregroundColor);
             App::scenes->pushEvent();
         }
     }
@@ -614,28 +608,15 @@ void CGraph::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CGraph::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CGraph::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-        ev->openKeyMap(_objectTypeStr.c_str());
-    else
-        color.addGenesisEventData(ev);
+    color.addGenesisEventData(ev);
     ev->appendKeyInt64(prop(PropGraph::bufferSize).name, bufferSize);
     ev->appendKeyBool(prop(PropGraph::cyclic).name, cyclic);
     ev->appendKeyDouble(prop(PropGraph::size).name, _graphSize);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyFloatArray(prop(PropGraph::backgroundColor).name, backgroundColor, 3);
-        ev->appendKeyFloatArray(prop(PropGraph::foregroundColor).name, foregroundColor, 3);
-    }
-    else
-    {
-        ev->appendKeyColor3(prop(PropGraph::backgroundColor).name, backgroundColor);
-        ev->appendKeyColor3(prop(PropGraph::foregroundColor).name, foregroundColor);
-    }
-    if (App::getEventProtocolVersion() == 2)
-        ev->closeArrayOrMap(); // graph
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    ev->appendKeyColor3(prop(PropGraph::backgroundColor).name, backgroundColor);
+    ev->appendKeyColor3(prop(PropGraph::foregroundColor).name, foregroundColor);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CGraph::copyYourself()

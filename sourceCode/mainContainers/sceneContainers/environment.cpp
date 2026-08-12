@@ -157,24 +157,12 @@ void CEnvironment::appendGenesisData(CCbor* ev) const
         msh = it->getSceneObjectOrDetachedScriptHandle();
     ev->appendKeyInt64(prop(PropScene::visibilityLayers).name, _activeLayers);
     ev->appendKeyText(prop(PropScene::acknowledgment).name, _acknowledgement.c_str());
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyBool("sceneIsLocked", _sceneIsLocked);
-        ev->appendKeyText("scenePath", _scenePathAndName.c_str());
-        ev->appendKeyInt64("sceneUid", _sceneUniqueID);
-        ev->appendKeyText("sceneUidString", _sceneUniquePersistentIdString.c_str());
-        ev->appendKeyInt64(prop(PropScene::mainScript).name, msh);
-        ev->appendKeyFloatArray(prop(PropScene::ambientLight).name, ambientLightColor, 3);
-    }
-    else
-    {
-        ev->appendKeyBool(prop(PropScene::sceneIsLocked).name, _sceneIsLocked);
-        ev->appendKeyText(prop(PropScene::scenePath).name, _scenePathAndName.c_str());
-        ev->appendKeyInt64(prop(PropScene::sceneUid).name, _sceneUniqueID);
-        ev->appendKeyText(prop(PropScene::sceneUidString).name, _sceneUniquePersistentIdString.c_str());
-        ev->appendKeyHandle(prop(PropScene::mainScript).name, msh);
-        ev->appendKeyColor3(prop(PropScene::ambientLight).name, ambientLightColor);
-    }
+    ev->appendKeyBool(prop(PropScene::sceneIsLocked).name, _sceneIsLocked);
+    ev->appendKeyText(prop(PropScene::scenePath).name, _scenePathAndName.c_str());
+    ev->appendKeyInt64(prop(PropScene::sceneUid).name, _sceneUniqueID);
+    ev->appendKeyText(prop(PropScene::sceneUidString).name, _sceneUniquePersistentIdString.c_str());
+    ev->appendKeyHandle(prop(PropScene::mainScript).name, msh);
+    ev->appendKeyColor3(prop(PropScene::ambientLight).name, ambientLightColor);
 }
 
 void CEnvironment::setAmbientLight(const float c[3])
@@ -188,10 +176,7 @@ void CEnvironment::setAmbientLight(const float c[3])
         {
             const char* cmd = prop(PropScene::ambientLight).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyFloatArray(cmd, ambientLightColor, 3);
-            else
-                ev->appendKeyColor3(cmd, ambientLightColor);
+            ev->appendKeyColor3(cmd, ambientLightColor);
             App::scenes->pushEvent();
         }
     }
@@ -347,10 +332,7 @@ void CEnvironment::setSceneLocked()
         {
             const char* cmd = prop(PropScene::sceneIsLocked).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyBool("sceneIsLocked", _sceneIsLocked);
-            else
-                ev->appendKeyBool(cmd, _sceneIsLocked);
+            ev->appendKeyBool(cmd, _sceneIsLocked);
             App::scenes->pushEvent();
         }
     }
@@ -1057,10 +1039,7 @@ void CEnvironment::setScenePathAndName(const char* pathAndName)
         {
             const char* cmd = prop(PropScene::scenePath).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyText("scenePath", _scenePathAndName.c_str());
-            else
-                ev->appendKeyText(cmd, _scenePathAndName.c_str());
+            ev->appendKeyText(cmd, _scenePathAndName.c_str());
             App::scenes->pushEvent();
         }
 #ifdef SIM_WITH_GUI

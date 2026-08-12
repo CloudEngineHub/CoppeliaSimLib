@@ -1766,17 +1766,8 @@ bool CSceneObjectContainer::setSelectedObjectHandles(const int* v, size_t length
         {
             const char* cmd = prop(PropScene::selection).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt32Array(cmd, _selectedObjectHandles.data(), _selectedObjectHandles.size());
-            else
-                ev->appendKeyHandleArray(cmd, _selectedObjectHandles.data(), _selectedObjectHandles.size());
+            ev->appendKeyHandleArray(cmd, _selectedObjectHandles.data(), _selectedObjectHandles.size());
             App::scenes->pushEvent();
-            if (App::getEventProtocolVersion() < 4)
-            { // --- For backward compatibility ---
-                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, true);
-                ev->appendKeyInt32Array("selectionHandles", _selectedObjectHandles.data(), _selectedObjectHandles.size());
-                App::scenes->pushEvent();
-            }
         }
 #ifdef SIM_WITH_GUI
         if (GuiApp::mainWindow != nullptr)
@@ -5905,18 +5896,8 @@ void CSceneObjectContainer::_setOrphanObjects(const std::vector<CSceneObject*>& 
                 arr.push_back(_orphanObjects[i]->getObjectHandle());
             const char* cmd = prop(PropScene::orphans).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, false);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt32Array(cmd, arr.data(), arr.size());
-            else
-                ev->appendKeyHandleArray(cmd, arr.data(), arr.size());
+            ev->appendKeyHandleArray(cmd, arr.data(), arr.size());
             App::scenes->pushEvent();
-            if (App::getEventProtocolVersion() < 4)
-            { // --- For backward compatibility ---
-                cmd = prop(PropScene::DEPRECATED_orphanHandles).name;
-                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, false);
-                ev->appendKeyInt32Array(cmd, arr.data(), arr.size());
-                App::scenes->pushEvent();
-            }
         }
     }
 }
@@ -5945,17 +5926,8 @@ void CSceneObjectContainer::_setAllObjects(const std::vector<CSceneObject*>& new
                 arr.push_back(_allObjects[i]->getObjectHandle());
             const char* cmd = prop(PropScene::objects).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, false);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt32Array(cmd, arr.data(), arr.size());
-            else
-                ev->appendKeyHandleArray(cmd, arr.data(), arr.size());
+            ev->appendKeyHandleArray(cmd, arr.data(), arr.size());
             App::scenes->pushEvent();
-            if (App::getEventProtocolVersion() < 4)
-            { // --- For backward compatibility ---
-                ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
-                ev->appendKeyInt32Array("objectHandles", arr.data(), arr.size());
-                App::scenes->pushEvent();
-            }
         }
     }
 }

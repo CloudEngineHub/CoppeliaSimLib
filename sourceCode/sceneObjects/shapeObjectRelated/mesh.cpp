@@ -527,16 +527,8 @@ void CMesh::pushObjectCreationOrChangeEvent(int shapeHandle, int shapeUid, const
     if (eventType < 2)
     {
         Obj::addObjectEventData(ev);
-        if (App::getEventProtocolVersion() <= 3)
-        {
-            ev->appendKeyInt64(prop(PropMesh::shape).name, _isInSceneShapeHandle);
-            ev->appendKeyInt64(prop(PropMesh::DEPRECATED_primitiveType).name, _purePrimitive);
-        }
-        else
-        {
-            ev->appendKeyHandle(prop(PropMesh::shape).name, _isInSceneShapeHandle);
-            ev->appendKeyInt64(prop(PropMesh::primitiveType).name, _purePrimitive);
-        }
+        ev->appendKeyHandle(prop(PropMesh::shape).name, _isInSceneShapeHandle);
+        ev->appendKeyInt64(prop(PropMesh::primitiveType).name, _purePrimitive);
         ev->appendKeyInt64(prop(PropMesh::shapeUid).name, _isInSceneShapeUid);
         std::vector<float> vertices;
         vertices.resize(_verticesForDisplayAndDisk.size());
@@ -561,16 +553,8 @@ void CMesh::pushObjectCreationOrChangeEvent(int shapeHandle, int shapeUid, const
             normals[3 * j + 1] = (float)n(1);
             normals[3 * j + 2] = (float)n(2);
         }
-        if (App::getEventProtocolVersion() <= 3)
-        {
-            ev->appendKeyFloatArray(prop(PropMesh::vertices).name, vertices.data(), vertices.size());
-            ev->appendKeyFloatArray(prop(PropMesh::normals).name, normals.data(), normals.size());
-        }
-        else
-        {
-            ev->appendKeyMatrix(prop(PropMesh::vertices).name, vertices.data(), 3, vertices.size() / 3, false);
-            ev->appendKeyMatrix(prop(PropMesh::normals).name, normals.data(), 3, normals.size() / 3, false);
-        }
+        ev->appendKeyMatrix(prop(PropMesh::vertices).name, vertices.data(), 3, vertices.size() / 3, false);
+        ev->appendKeyMatrix(prop(PropMesh::normals).name, normals.data(), 3, normals.size() / 3, false);
         ev->appendKeyInt32Array(prop(PropMesh::indices).name, _indices.data(), _indices.size());
     }
 
@@ -589,28 +573,14 @@ void CMesh::pushObjectCreationOrChangeEvent(int shapeHandle, int shapeUid, const
         {
             int tRes[2];
             to->getTextureSize(tRes[0], tRes[1]);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyBuff("rawTexture", to->getTextureBufferPointer(), tRes[1] * tRes[0] * 4);
-                ev->appendKeyInt32Array("textureResolution", tRes, 2);
-                ev->appendKeyFloatArray("textureCoordinates", tc->data(), tc->size());
-                ev->appendKeyInt64("textureApplyMode", _textureProperty->getApplyMode());
-                ev->appendKeyBool("textureRepeatU", _textureProperty->getRepeatU());
-                ev->appendKeyBool("textureRepeatV", _textureProperty->getRepeatV());
-                ev->appendKeyBool("textureInterpolate", _textureProperty->getInterpolateColors());
-                ev->appendKeyInt64("textureID", _textureProperty->getTextureObjectID());
-            }
-            else
-            {
-                ev->appendKeyUint8Array(prop(PropMesh::texture).name, to->getTextureBufferPointer(), tRes[1] * tRes[0] * 4);
-                ev->appendKeyInt32Array(prop(PropMesh::textureResolution).name, tRes, 2);
-                ev->appendKeyFloatArray(prop(PropMesh::textureCoordinates).name, tc->data(), tc->size());
-                ev->appendKeyInt64(prop(PropMesh::textureApplyMode).name, _textureProperty->getApplyMode());
-                ev->appendKeyBool(prop(PropMesh::textureRepeatU).name, _textureProperty->getRepeatU());
-                ev->appendKeyBool(prop(PropMesh::textureRepeatV).name, _textureProperty->getRepeatV());
-                ev->appendKeyBool(prop(PropMesh::textureInterpolate).name, _textureProperty->getInterpolateColors());
-                ev->appendKeyInt64(prop(PropMesh::textureID).name, _textureProperty->getTextureObjectID());
-            }
+            ev->appendKeyUint8Array(prop(PropMesh::texture).name, to->getTextureBufferPointer(), tRes[1] * tRes[0] * 4);
+            ev->appendKeyInt32Array(prop(PropMesh::textureResolution).name, tRes, 2);
+            ev->appendKeyFloatArray(prop(PropMesh::textureCoordinates).name, tc->data(), tc->size());
+            ev->appendKeyInt64(prop(PropMesh::textureApplyMode).name, _textureProperty->getApplyMode());
+            ev->appendKeyBool(prop(PropMesh::textureRepeatU).name, _textureProperty->getRepeatU());
+            ev->appendKeyBool(prop(PropMesh::textureRepeatV).name, _textureProperty->getRepeatV());
+            ev->appendKeyBool(prop(PropMesh::textureInterpolate).name, _textureProperty->getInterpolateColors());
+            ev->appendKeyInt64(prop(PropMesh::textureID).name, _textureProperty->getTextureObjectID());
         }
     }
 
@@ -727,28 +697,14 @@ void CMesh::setColor(const CShape* shape, int& elementIndex, const char* colorNa
         bool compoundColors = (colorName != nullptr) && (strcmp(colorName, "@compound") == 0);
         if (colorComponent < sim_colorcomponent_transparency)
         { // regular components
-            if (App::getEventProtocolVersion() == 2)
-            {
-                for (int i = 0; i < 3; i++)
-                    color.getColorsPtr()[colorComponent * 3 + i] = rgbData[rgbDataOffset + i];
-            }
-            else
-                setColor(rgbData + rgbDataOffset, colorComponent);
+            setColor(rgbData + rgbDataOffset, colorComponent);
             if (compoundColors)
                 rgbDataOffset += 3;
         }
         if (colorComponent == sim_colorcomponent_transparency)
         {
-            if (App::getEventProtocolVersion() == 2)
-            {
-                color.setOpacity(rgbData[rgbDataOffset + 0]);
-                color.setTranslucid(rgbData[rgbDataOffset + 0] < 1.0);
-            }
-            else
-            {
-                float ccol = 1.0f - rgbData[rgbDataOffset];
-                setColor(&ccol, colorComponent);
-            }
+            float ccol = 1.0f - rgbData[rgbDataOffset];
+            setColor(&ccol, colorComponent);
             if (compoundColors)
                 rgbDataOffset += 1;
         }
@@ -758,11 +714,6 @@ void CMesh::setColor(const CShape* shape, int& elementIndex, const char* colorNa
                 color.getColorsPtr()[12 + i] = rgbData[rgbDataOffset + i];
             if (compoundColors)
                 rgbDataOffset += 3;
-        }
-        if (App::getEventProtocolVersion() == 2)
-        {
-            if (shape != nullptr)
-                color.pushShapeColorChangeEvent(shape->getObjectHandle(), elementIndex);
         }
     }
     if ((colorName != nullptr) && (insideColor_DEPRECATED.getColorName().compare(colorName) == 0))
@@ -809,14 +760,9 @@ void CMesh::setColor(const CShape* shape, int& elementIndex, const char* colorNa
                 hsl[1] = tt::getLimitedFloat(0.0, 1.0, hsl[1] + rgbData[rgbDataOffset + 1]);
                 hsl[2] = tt::getLimitedFloat(0.0, 1.0, hsl[2] + rgbData[rgbDataOffset + 2]);
 
-                if (App::getEventProtocolVersion() == 2)
-                    tt::hslToRgb(hsl, color.getColorsPtr() + colorComponent * 3);
-                else
-                {
-                    float rgb[3];
-                    tt::hslToRgb(hsl, rgb);
-                    setColor(rgb, colorComponent);
-                }
+                float rgb[3];
+                tt::hslToRgb(hsl, rgb);
+                setColor(rgb, colorComponent);
             }
             if (colorComponent == 4)
             {
@@ -2867,10 +2813,7 @@ void CMesh::setTextureRepeatU(bool r)
             {
                 const char* cmd = prop(PropMesh::textureRepeatU).name;
                 CCbor* ev = App::scenes->createObjectChangedEvent(_objectHandle, cmd, true);
-                if (App::getEventProtocolVersion() <= 3)
-                    ev->appendKeyBool("textureRepeatU", r);
-                else
-                    ev->appendKeyBool(cmd, r);
+                ev->appendKeyBool(cmd, r);
                 App::scenes->pushEvent();
             }
         }
@@ -2897,10 +2840,7 @@ void CMesh::setTextureRepeatV(bool r)
             {
                 const char* cmd = prop(PropMesh::textureRepeatV).name;
                 CCbor* ev = App::scenes->createObjectChangedEvent(_objectHandle, cmd, true);
-                if (App::getEventProtocolVersion() <= 3)
-                    ev->appendKeyBool("textureRepeatV", r);
-                else
-                    ev->appendKeyBool(cmd, r);
+                ev->appendKeyBool(cmd, r);
                 App::scenes->pushEvent();
             }
         }
@@ -2927,10 +2867,7 @@ void CMesh::setTextureInterpolate(bool r)
             {
                 const char* cmd = prop(PropMesh::textureInterpolate).name;
                 CCbor* ev = App::scenes->createObjectChangedEvent(_objectHandle, cmd, true);
-                if (App::getEventProtocolVersion() <= 3)
-                    ev->appendKeyBool("textureInterpolate", r);
-                else
-                    ev->appendKeyBool(cmd, r);
+                ev->appendKeyBool(cmd, r);
                 App::scenes->pushEvent();
             }
         }
@@ -2957,10 +2894,7 @@ void CMesh::setTextureApplyMode(int m)
             {
                 const char* cmd = prop(PropMesh::textureApplyMode).name;
                 CCbor* ev = App::scenes->createObjectChangedEvent(_objectHandle, cmd, true);
-                if (App::getEventProtocolVersion() <= 3)
-                    ev->appendKeyInt64("textureApplyMode", m);
-                else
-                    ev->appendKeyInt64(cmd, m);
+                ev->appendKeyInt64(cmd, m);
                 App::scenes->pushEvent();
             }
         }

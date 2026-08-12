@@ -478,10 +478,7 @@ void CVisionSensor::_emitImageChangedEvent(CCbor* thirdPartyEv /*= nullptr*/) co
         CCbor* ev = thirdPartyEv;
         if (thirdPartyEv == nullptr)
             ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyBuff(cmd, _rgbBuffer, 3 * _resolution[0] * _resolution[1]);
-        else
-            ev->appendKeyUint8Array(cmd, _rgbBuffer, 3 * _resolution[0] * _resolution[1]);
+        ev->appendKeyUint8Array(cmd, _rgbBuffer, 3 * _resolution[0] * _resolution[1]);
         if (thirdPartyEv == nullptr)
             App::scenes->pushEvent();
     }
@@ -495,10 +492,7 @@ void CVisionSensor::_emitDepthChangedEvent(CCbor* thirdPartyEv /*= nullptr*/) co
         CCbor* ev = thirdPartyEv;
         if (thirdPartyEv == nullptr)
             ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyFloatArray(prop(PropVisionSensor::DEPRECATED_depthBuffer).name, _depthBuffer, _resolution[0] * _resolution[1]);
-        else
-            ev->appendKeyMatrix(cmd, _depthBuffer, _resolution[1], _resolution[0]);
+        ev->appendKeyMatrix(cmd, _depthBuffer, _resolution[1], _resolution[0]);
         if (thirdPartyEv == nullptr)
             App::scenes->pushEvent();
     }
@@ -657,10 +651,7 @@ void CVisionSensor::setVisionSensorSize(const double s)
         {
             const char* cmd = prop(PropVisionSensor::size).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDouble("sensorSize", _visionSensorSize);
-            else
-                ev->appendKeyDouble(cmd, _visionSensorSize);
+            ev->appendKeyDouble(cmd, _visionSensorSize);
             App::scenes->pushEvent();
         }
         computeBoundingBox();
@@ -813,10 +804,7 @@ void CVisionSensor::setDefaultBufferValues(const float v[3])
         {
             const char* cmd = prop(PropVisionSensor::backgroundCol).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyFloatArray(cmd, _defaultBufferValues, 3);
-            else
-                ev->appendKeyColor3(cmd, _defaultBufferValues);
+            ev->appendKeyColor3(cmd, _defaultBufferValues);
             App::scenes->pushEvent();
         }
     }
@@ -2131,27 +2119,11 @@ void CVisionSensor::removeSceneDependencies()
     _detectableEntityHandle = -1;
 }
 
-void CVisionSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CVisionSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->openKeyMap(_objectTypeStr.c_str());
-        ev->appendKeyBool("perspectiveMode", _perspective);
-        ev->appendKeyDouble("nearClippingPlane", _nearClippingPlane);
-        ev->appendKeyDouble("farClippingPlane", _farClippingPlane);
-        ev->appendKeyDouble("orthoSize", _orthoViewSize);
-        ev->openKeyMap("frustumVectors");
-        ev->appendKeyDoubleArray("near", _volumeVectorNear.data, 3);
-        ev->appendKeyDoubleArray("far", _volumeVectorFar.data, 3);
-        ev->closeArrayOrMap(); // frustumVectors
-    }
-    else
-        color.addGenesisEventData(ev);
+    color.addGenesisEventData(ev);
     ev->appendKeyDouble(prop(PropVisionSensor::size).name, _visionSensorSize);
-    if (App::getEventProtocolVersion() <= 3)
-        ev->appendKeyFloatArray(prop(PropVisionSensor::backgroundCol).name, _defaultBufferValues, 3);
-    else
-        ev->appendKeyColor3(prop(PropVisionSensor::backgroundCol).name, _defaultBufferValues);
+    ev->appendKeyColor3(prop(PropVisionSensor::backgroundCol).name, _defaultBufferValues);
     ev->appendKeyInt64(prop(PropVisionSensor::renderMode).name, _renderMode);
     ev->appendKeyBool(prop(PropVisionSensor::backgroundSameAsEnv).name, _useSameBackgroundAsEnvironment);
     ev->appendKeyBool(prop(PropVisionSensor::explicitHandling).name, _explicitHandling);
@@ -2164,22 +2136,7 @@ void CVisionSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMesh
     _emitImageChangedEvent(ev);
     _emitDepthChangedEvent(ev);
     _emitTriggerStateAndPacketChangeEvents(ev);
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->appendKeyDouble(prop(PropVisionSensor::viewAngle).name, _viewAngle);
-        ev->appendKeyDouble(prop(PropVisionSensor::viewSize).name, _orthoViewSize);
-        double arr[2] = {_nearClippingPlane, _farClippingPlane};
-        ev->appendKeyDoubleArray(prop(PropVisionSensor::clippingPlanes).name, arr, 2);
-        ev->appendKeyBool(prop(PropVisionSensor::perspective).name, _perspective);
-        ev->appendKeyBool(prop(PropVisionSensor::showFrustum).name, _showVolume);
-        ev->appendKeyDoubleArray(prop(PropVisionSensor::frustumCornerNear).name, _volumeVectorNear.data, 3);
-        ev->appendKeyDoubleArray(prop(PropVisionSensor::frustumCornerFar).name, _volumeVectorFar.data, 3);
-        ev->appendKeyInt32Array(prop(PropVisionSensor::resolution).name, _resolution, 2);
-        ev->closeArrayOrMap(); // visionSensor
-        CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
-    }
-    else
-        CViewableBase::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CViewableBase::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CVisionSensor::copyYourself()

@@ -145,20 +145,11 @@ bool CDrawingObject::addItem(const double* itemData)
 
         if ((otherFloatsPerItem == 0) && App::scenes->getEventsEnabled())
         {
-            if (App::getEventProtocolVersion()  > 3)
-            {
-                CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTCHANGED, _objectHandle, _objectHandle, nullptr, false);
-                ev->appendKeyFloatArray("points", nullptr, 0);
-                ev->appendKeyFloatArray("quaternions", nullptr, 0);
-                ev->appendKeyFloatArray("colors", nullptr, 0);
-                App::scenes->pushEvent();
-            }
-            if (App::getEventProtocolVersion() <= 3)
-            { // For backw. compatibility
-                CCbor* ev = App::scenes->createEvent("drawingObjectChanged", _objectHandle, _objectHandle, nullptr, false);
-                ev->appendKeyBool("clearPoints", true);
-                App::scenes->pushEvent();
-            }
+            CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTCHANGED, _objectHandle, _objectHandle, nullptr, false);
+            ev->appendKeyFloatArray("points", nullptr, 0);
+            ev->appendKeyFloatArray("quaternions", nullptr, 0);
+            ev->appendKeyFloatArray("colors", nullptr, 0);
+            App::scenes->pushEvent();
         }
 
         return (false);
@@ -449,95 +440,48 @@ void CDrawingObject::pushAddEvent()
 {
     if ((otherFloatsPerItem == 0) && App::scenes->getEventsEnabled())
     {
-        if (App::getEventProtocolVersion()  > 3)
+        CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _objectHandle, nullptr, false);
+        Obj::addObjectEventData(ev);
+        std::string tp;
+        switch (_objectType & 0x001f)
         {
-            CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _objectHandle, nullptr, false);
-            Obj::addObjectEventData(ev);
-            std::string tp;
-            switch (_objectType & 0x001f)
-            {
-            case sim_drawing_points:
-                tp = "point";
-                break;
-            case sim_drawing_lines:
-                tp = "line";
-                break;
-            case sim_drawing_linestrip:
-                tp = "lineStrip";
-                break;
-            case sim_drawing_triangles:
-                tp = "triangle";
-                break;
-            case sim_drawing_trianglepts:
-                tp = "trianglePoint";
-                break;
-            case sim_drawing_quadpts:
-                tp = "quadPoint";
-                break;
-            case sim_drawing_discpts:
-                tp = "discPoint";
-                break;
-            case sim_drawing_cubepts:
-                tp = "cubePoint";
-                break;
-            case sim_drawing_spherepts:
-                tp = "spherePoint";
-                break;
-            }
-            ev->appendKeyInt64(prop(PropObject::handle).name, _objectHandle);
-            ev->appendKeyHandle(prop(PropDrawingObject::parent).name, _sceneObjectId);
-            ev->appendKeyText("itemType", tp.c_str());
-            ev->appendKeyInt64("maxCnt", _maxItemCount);
-            ev->appendKeyDouble("size", _size);
-            ev->appendKeyInt64("parentUid", _sceneObjectUid);
-            ev->appendKeyBool("cyclic", (_objectType & sim_drawing_cyclic) != 0);
-            ev->appendKeyBool("overlay", _objectType & sim_drawing_overlay);
-            App::scenes->pushEvent();
+        case sim_drawing_points:
+            tp = "point";
+            break;
+        case sim_drawing_lines:
+            tp = "line";
+            break;
+        case sim_drawing_linestrip:
+            tp = "lineStrip";
+            break;
+        case sim_drawing_triangles:
+            tp = "triangle";
+            break;
+        case sim_drawing_trianglepts:
+            tp = "trianglePoint";
+            break;
+        case sim_drawing_quadpts:
+            tp = "quadPoint";
+            break;
+        case sim_drawing_discpts:
+            tp = "discPoint";
+            break;
+        case sim_drawing_cubepts:
+            tp = "cubePoint";
+            break;
+        case sim_drawing_spherepts:
+            tp = "spherePoint";
+            break;
         }
-        if (App::getEventProtocolVersion() <= 3)
-        { // For backw. compatibility
-            CCbor* ev = App::scenes->createEvent("drawingObjectAdded", _objectHandle, _objectHandle, nullptr, false);
-            Obj::addObjectEventData(ev);
-            std::string tp;
-            switch (_objectType & 0x001f)
-            {
-            case sim_drawing_points:
-                tp = "point";
-                break;
-            case sim_drawing_lines:
-                tp = "line";
-                break;
-            case sim_drawing_linestrip:
-                tp = "lineStrip";
-                break;
-            case sim_drawing_triangles:
-                tp = "triangle";
-                break;
-            case sim_drawing_trianglepts:
-                tp = "trianglePoint";
-                break;
-            case sim_drawing_quadpts:
-                tp = "quadPoint";
-                break;
-            case sim_drawing_discpts:
-                tp = "discPoint";
-                break;
-            case sim_drawing_cubepts:
-                tp = "cubePoint";
-                break;
-            case sim_drawing_spherepts:
-                tp = "spherePoint";
-                break;
-            }
-            ev->appendKeyText("type", tp.c_str());
-            ev->appendKeyInt64("maxCnt", _maxItemCount);
-            ev->appendKeyDouble("size", _size);
-            ev->appendKeyInt64("parentUid", _sceneObjectUid);
-            ev->appendKeyBool("cyclic", (_objectType & sim_drawing_cyclic) != 0);
-            ev->appendKeyBool("clearPoints", true);
-            ev->appendKeyBool("overlay", _objectType & sim_drawing_overlay);
-            App::scenes->pushEvent();
-        }
+        ev->appendKeyInt64(prop(PropObject::handle).name, _objectHandle);
+        ev->appendKeyHandle(prop(PropDrawingObject::parent).name, _sceneObjectId);
+        ev->appendKeyText("itemType", tp.c_str());
+        ev->appendKeyInt64("maxCnt", _maxItemCount);
+        ev->appendKeyDouble("size", _size);
+        ev->appendKeyInt64("parentUid", _sceneObjectUid);
+        ev->appendKeyBool("cyclic", (_objectType & sim_drawing_cyclic) != 0);
+        ev->appendKeyBool("overlay", _objectType & sim_drawing_overlay);
+        App::scenes->pushEvent();
 
         _initBufferedEventData();
     }
@@ -552,32 +496,20 @@ void CDrawingObject::pushAppendNewPointEvent()
         std::vector<float> colors;
         _getEventData(points, quaternions, colors);
 
-        if (App::getEventProtocolVersion()  >= 3)
+        CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTCHANGED, _objectHandle, _objectHandle, nullptr, false);
+        if (_rebuildRemoteItems)
         {
-            CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTCHANGED, _objectHandle, _objectHandle, nullptr, false);
-            if (_rebuildRemoteItems)
-            {
-                ev->appendKeyFloatArray("points", points.data(), points.size());
-                ev->appendKeyFloatArray("quaternions", quaternions.data(), quaternions.size());
-                ev->appendKeyFloatArray("colors", colors.data(), colors.size());
-            }
-            else
-            {
-                ev->appendKeyFloatArray("appendPoints", points.data(), points.size());
-                ev->appendKeyFloatArray("appendQuaternions", quaternions.data(), quaternions.size());
-                ev->appendKeyFloatArray("appendColors", colors.data(), colors.size());
-            }
-            App::scenes->pushEvent();
-        }
-        if (App::getEventProtocolVersion() <= 3)
-        { // For backw. compatibility
-            CCbor* ev = App::scenes->createEvent("drawingObjectChanged", _objectHandle, _objectHandle, nullptr, false);
             ev->appendKeyFloatArray("points", points.data(), points.size());
             ev->appendKeyFloatArray("quaternions", quaternions.data(), quaternions.size());
             ev->appendKeyFloatArray("colors", colors.data(), colors.size());
-            ev->appendKeyBool("clearPoints", _rebuildRemoteItems);
-            App::scenes->pushEvent();
         }
+        else
+        {
+            ev->appendKeyFloatArray("appendPoints", points.data(), points.size());
+            ev->appendKeyFloatArray("appendQuaternions", quaternions.data(), quaternions.size());
+            ev->appendKeyFloatArray("appendColors", colors.data(), colors.size());
+        }
+        App::scenes->pushEvent();
 
         _bufferedEventData.clear();
         _rebuildRemoteItems = false;

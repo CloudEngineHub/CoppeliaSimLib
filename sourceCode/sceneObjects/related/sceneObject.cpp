@@ -166,17 +166,8 @@ void CSceneObject::_setMeasuredVelocity(const C3Vector& lin, const C3Vector& ang
         {
             const char* cmd = prop(PropSceneObject::calcLinearVelocity).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyDoubleArray(cmd, _measuredLinearVelocity_velocityMeasurement.data, 3);
-                ev->appendKeyDoubleArray(prop(PropSceneObject::DEPRECATED_calcRotationAxis).name, _measuredAngularVelocityAxis_velocityMeasurement.data, 3);
-                ev->appendKeyDouble(prop(PropSceneObject::DEPRECATED_calcRotationVelocity).name, _measuredAngularVelocity_velocityMeasurement);
-            }
-            else
-            {
-                ev->appendKeyVector3(prop(PropSceneObject::calcLinearVelocity).name, _measuredLinearVelocity_velocityMeasurement);
-                ev->appendKeyVector3(prop(PropSceneObject::calcAngularVelocity).name, _measuredAngularVelocityAxis_velocityMeasurement);
-            }
+            ev->appendKeyVector3(prop(PropSceneObject::calcLinearVelocity).name, _measuredLinearVelocity_velocityMeasurement);
+            ev->appendKeyVector3(prop(PropSceneObject::calcAngularVelocity).name, _measuredAngularVelocityAxis_velocityMeasurement);
             App::scenes->pushEvent();
         }
     }
@@ -871,8 +862,6 @@ void CSceneObject::setObjectProperty(int p)
         {
             const char* cmd = prop(PropSceneObject::objectProperty).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
-            if (App::getEventProtocolVersion() == 2)
-                ev->appendKeyInt64("objectProperty", _objectProperty); // deprecated
             ev->appendKeyInt64(prop(PropSceneObject::objectProperty).name, _objectProperty);
             if (cb & sim_objectproperty_ignoreviewfitting)
                 ev->appendKeyBool(prop(PropSceneObject::ignoreViewFitting).name, _objectProperty & sim_objectproperty_ignoreviewfitting);
@@ -984,8 +973,6 @@ bool CSceneObject::setModelProperty(int prope)
         {
             const char* cmd = prop(PropSceneObject::modelProperty).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
-            if (App::getEventProtocolVersion() == 2)
-                ev->appendKeyInt64("modelProperty", _modelProperty); // Deprecated
             ev->appendKeyInt64(prop(PropSceneObject::modelProperty).name, _modelProperty);
             if (cb & sim_modelproperty_not_collidable)
                 ev->appendKeyBool(prop(PropSceneObject::modelNotCollidable).name, _modelProperty & sim_modelproperty_not_collidable);
@@ -1458,46 +1445,24 @@ void CSceneObject::removeSceneDependencies()
     _customReferencedOriginalHandles.clear();
 }
 
-void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
     ev->appendKeyInt64(prop(PropSceneObject::layer).name, _visibilityLayer);
     ev->appendKeyInt64(prop(PropSceneObject::childOrder).name, _childOrder);
     std::vector<int> ch;
     for (size_t i = 0; i < _childList.size(); i++)
         ch.push_back(_childList[i]->getObjectHandle());
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyInt32Array(prop(PropSceneObject::children).name, ch.data(), ch.size());
-        double p[7] = {_localTransformation.X(0), _localTransformation.X(1), _localTransformation.X(2),
-                       _localTransformation.Q(1), _localTransformation.Q(2), _localTransformation.Q(3),
-                       _localTransformation.Q(0)};
-        ev->appendKeyDoubleArray(prop(PropSceneObject::position).name, p, 3);
-        ev->appendKeyDoubleArray(prop(PropSceneObject::pose).name, p, 7);
-        ev->appendKeyDoubleArray(prop(PropSceneObject::quaternion).name, p + 3, 4);
-    }
+    if (sendAsChildlessOrphanMeshlessDetachedscriptless)
+        ev->appendKeyHandleArray(prop(PropSceneObject::children).name, (int*)nullptr, 0);
     else
-    {
-        if (sendAsChildlessOrphanMeshless)
-            ev->appendKeyHandleArray(prop(PropSceneObject::children).name, (int*)nullptr, 0);
-        else
-            ev->appendKeyHandleArray(prop(PropSceneObject::children).name, ch.data(), ch.size());
-        ev->appendKeyVector3(prop(PropSceneObject::position).name, _localTransformation.X);
-        ev->appendKeyPose(prop(PropSceneObject::pose).name, _localTransformation);
-        ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, _localTransformation.Q);
-    }
-    if (App::getEventProtocolVersion() <= 3)
-        ev->appendKeyText("alias", _objectAlias.c_str());
-    else
-        ev->appendKeyText(prop(PropSceneObject::name).name, _objectAlias.c_str());
+        ev->appendKeyHandleArray(prop(PropSceneObject::children).name, ch.data(), ch.size());
+    ev->appendKeyVector3(prop(PropSceneObject::position).name, _localTransformation.X);
+    ev->appendKeyPose(prop(PropSceneObject::pose).name, _localTransformation);
+    ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, _localTransformation.Q);
+    ev->appendKeyText(prop(PropSceneObject::name).name, _objectAlias.c_str());
     ev->appendKeyBool(prop(PropSceneObject::modelInvisible).name, _modelInvisible);
     ev->appendKeyBool(prop(PropSceneObject::modelBase).name, _modelBase);
 
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->appendKeyInt64("objectProperty", _objectProperty); // deprecated
-        ev->appendKeyInt64("dynamicFlag", _dynamicFlag);
-        ev->appendKeyText("oldName", _objectName_old.c_str());
-    }
     ev->appendKeyInt64(prop(PropSceneObject::objectProperty).name, _objectProperty);
     ev->appendKeyBool(prop(PropSceneObject::ignoreViewFitting).name, _objectProperty & sim_objectproperty_ignoreviewfitting);
     ev->appendKeyBool(prop(PropSceneObject::collapsed).name, _objectProperty & sim_objectproperty_collapsed);
@@ -1509,8 +1474,6 @@ void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshl
     ev->appendKeyBool(prop(PropSceneObject::cannotDelete).name, _objectProperty & sim_objectproperty_cannotdelete);
     ev->appendKeyBool(prop(PropSceneObject::cannotDeleteSim).name, _objectProperty & sim_objectproperty_cannotdeleteduringsim);
 
-    if (App::getEventProtocolVersion() == 2)
-        ev->appendKeyInt64("modelProperty", _modelProperty); // deprecated
     ev->appendKeyInt64(prop(PropSceneObject::modelProperty).name, _modelProperty);
     ev->appendKeyBool(prop(PropSceneObject::modelNotCollidable).name, _modelProperty & sim_modelproperty_not_collidable);
     ev->appendKeyBool(prop(PropSceneObject::modelNotMeasurable).name, _modelProperty & sim_modelproperty_not_measurable);
@@ -1523,17 +1486,14 @@ void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshl
 
     int64_t pUid = -1;
     int pH = -1;
-    if ((_parentObject != nullptr) && (!sendAsChildlessOrphanMeshless))
+    if ((_parentObject != nullptr) && (!sendAsChildlessOrphanMeshlessDetachedscriptless))
     {
         pUid = _parentObject->getObjectUid();
         pH = _parentObject->getObjectHandle();
     }
     ev->appendKeyInt64(prop(PropSceneObject::parentUid).name, pUid);
     ev->appendKeyInt64(prop(PropSceneObject::DEPRECATED_parentHandle).name, pH); // for backw. compatibility
-    if (App::getEventProtocolVersion() <= 3)
-        ev->appendKeyInt64(prop(PropSceneObject::parent).name, pH);
-    else
-        ev->appendKeyHandle(prop(PropSceneObject::parent).name, pH);
+    ev->appendKeyHandle(prop(PropSceneObject::parent).name, pH);
     ev->appendKeyBool(prop(PropSceneObject::selected).name, _selected);
     ev->appendKeyInt64(prop(PropSceneObject::hierarchyColor).name, _hierarchyColorIndex);
     ev->appendKeyInt64(prop(PropSceneObject::collectionSelfCollInd).name, _collectionSelfCollisionIndicator);
@@ -1543,42 +1503,13 @@ void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshl
     ev->appendKeyText(prop(PropSceneObject::modelAcknowledgment).name, _modelAcknowledgement.c_str());
     ev->appendKeyBuff(prop(PropSceneObject::dna).name, (unsigned char*)_dnaString.data(), _dnaString.size());
     ev->appendKeyText(prop(PropSceneObject::persistentUid).name, _uniquePersistentIdString.c_str());
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyDoubleArray(prop(PropSceneObject::calcLinearVelocity).name, _measuredLinearVelocity_velocityMeasurement.data, 3);
-        ev->appendKeyDoubleArray(prop(PropSceneObject::DEPRECATED_calcRotationAxis).name, _measuredAngularVelocityAxis_velocityMeasurement.data, 3);
-        ev->appendKeyDouble(prop(PropSceneObject::DEPRECATED_calcRotationVelocity).name, _measuredAngularVelocity_velocityMeasurement);
-    }
-    else
-    {
-        ev->appendKeyVector3(prop(PropSceneObject::calcLinearVelocity).name, _measuredLinearVelocity_velocityMeasurement);
-        ev->appendKeyVector3(prop(PropSceneObject::calcAngularVelocity).name, _measuredAngularVelocityAxis_velocityMeasurement);
-    }
+    ev->appendKeyVector3(prop(PropSceneObject::calcLinearVelocity).name, _measuredLinearVelocity_velocityMeasurement);
+    ev->appendKeyVector3(prop(PropSceneObject::calcAngularVelocity).name, _measuredAngularVelocityAxis_velocityMeasurement);
     ev->appendKeyInt64(prop(PropSceneObject::dynamicIcon).name, _dynamicSimulationIconCode);
     ev->appendKeyInt64(prop(PropSceneObject::dynamicFlag).name, _dynamicFlag);
 
-    if (App::getEventProtocolVersion() == 2)
-    {
-        // deprecated
-        ev->openKeyMap("boundingBox");
-        double p[7];
-        _bbFrame.getData(p, true);
-        ev->appendKeyDoubleArray("pose", p, 7);
-        ev->appendKeyDoubleArray("hsize", _bbHalfSize.data, 3);
-        ev->closeArrayOrMap();
-    }
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        double p[7];
-        _bbFrame.getData(p, true);
-        ev->appendKeyDoubleArray(prop(PropSceneObject::bbPose).name, p, 7);
-        ev->appendKeyDoubleArray(prop(PropSceneObject::DEPRECATED_bbHsize).name, _bbHalfSize.data, 3);
-    }
-    else
-    {
-        ev->appendKeyPose(prop(PropSceneObject::bbPose).name, _bbFrame);
-        ev->appendKeyVector3(prop(PropSceneObject::size).name, _bbHalfSize * 2.0);
-    }
+    ev->appendKeyPose(prop(PropSceneObject::bbPose).name, _bbFrame);
+    ev->appendKeyVector3(prop(PropSceneObject::size).name, _bbHalfSize * 2.0);
 
     customObjectData.appendEventData(nullptr, ev);
     customObjectData_volatile.appendEventData(nullptr, ev);
@@ -1610,36 +1541,14 @@ void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshl
         }
     }
 
-    //    ev->openKeyMap("customData");
-    //    customObjectData.appendEventData(ev);
-    //    customObjectData_volatile.appendEventData(ev);
-    //    ev->closeArrayOrMap(); // customData
-
-    if (App::getEventProtocolVersion() == 2)
-    {
-        // deprecated
-        ev->appendKeyInt64("movementOptions", _objectMovementOptions);
-        ev->appendKeyInt64("movementPreferredAxes", _objectMovementPreferredAxes);
-    }
-    else
-    {
-        ev->appendKeyInt64(prop(PropSceneObject::movementOptions).name, _objectMovementOptions);
-        ev->appendKeyInt64(prop(PropSceneObject::movementPreferredAxes).name, _objectMovementPreferredAxes);
-    }
+    ev->appendKeyInt64(prop(PropSceneObject::movementOptions).name, _objectMovementOptions);
+    ev->appendKeyInt64(prop(PropSceneObject::movementPreferredAxes).name, _objectMovementPreferredAxes);
     ev->appendKeyBool(prop(PropSceneObject::movTranslNoSim).name, (_objectMovementOptions & 1) == 0);
     ev->appendKeyBool(prop(PropSceneObject::movTranslInSim).name, (_objectMovementOptions & 2) == 0);
     ev->appendKeyBool(prop(PropSceneObject::movRotNoSim).name, (_objectMovementOptions & 4) == 0);
     ev->appendKeyBool(prop(PropSceneObject::movRotInSim).name, (_objectMovementOptions & 8) == 0);
     ev->appendKeyBool(prop(PropSceneObject::movAltTransl).name, (_objectMovementOptions & 16) == 0);
     ev->appendKeyBool(prop(PropSceneObject::movAltRot).name, (_objectMovementOptions & 32) == 0);
-    /*
-    ev->appendKeyBool(prop(PropSceneObject::movTranslX).name, (_objectMovementOptions & 64) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movTranslY).name, (_objectMovementOptions & 128) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movTranslZ).name, (_objectMovementOptions & 256) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movRotX).name, (_objectMovementOptions & 512) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movRotY).name, (_objectMovementOptions & 1024) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movRotZ).name, (_objectMovementOptions & 2048) == 0);
-    */
 
     ev->appendKeyBool(prop(PropSceneObject::movPrefTranslX).name, _objectMovementPreferredAxes & 1);
     ev->appendKeyBool(prop(PropSceneObject::movPrefTranslY).name, _objectMovementPreferredAxes & 2);
@@ -1654,12 +1563,12 @@ void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshl
     Obj::addObjectEventData(ev);
 }
 
-void CSceneObject::pushObjectCreationEvent(bool sendAsChildlessOrphanMeshless /*= false*/)
+void CSceneObject::pushObjectCreationEvent(bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
     if (_isInScene && App::scenes->getEventsEnabled())
     {
         CCbor* ev = App::scenes->createSceneObjectAddEvent(this);
-        addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+        addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
         App::scenes->pushEvent();
 
         if (_objectType == sim_sceneobject_shape)
@@ -1679,7 +1588,12 @@ void CSceneObject::pushObjectCreationEvent(bool sendAsChildlessOrphanMeshless /*
             App::scenes->pushEvent();
         }
         if (_objectType == sim_sceneobject_script)
+        {
             ((CScript*)this)->detachedScript->pushObjectCreationEvent();
+            CCbor* ev = App::scenes->createSceneObjectChangedEvent(getObjectHandle(), false, prop(PropScript::detachedScript).name, false);
+            ev->appendKeyHandle(prop(PropScript::detachedScript).name, ((CScript*)this)->detachedScript->getObjectHandle());
+            App::scenes->pushEvent();
+        }
     }
 }
 
@@ -1899,8 +1813,6 @@ void CSceneObject::setObjectMovementPreferredAxes(int p)
         {
             const char* cmd = prop(PropSceneObject::movementPreferredAxes).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
-            if (App::getEventProtocolVersion() == 2)
-                ev->appendKeyInt64("movementPreferredAxes", _objectMovementPreferredAxes); // deprecated
             if (cb & 1)
                 ev->appendKeyBool(prop(PropSceneObject::movPrefTranslX).name, _objectMovementPreferredAxes & 1);
             if (cb & 2)
@@ -1934,8 +1846,6 @@ void CSceneObject::setObjectMovementOptions(int p)
         {
             const char* cmd = prop(PropSceneObject::movementOptions).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
-            if (App::getEventProtocolVersion() == 2)
-                ev->appendKeyInt64("movementOptions", _objectMovementOptions); // deprecated
             if (cb & 1)
                 ev->appendKeyBool(prop(PropSceneObject::movTranslNoSim).name, (_objectMovementOptions & 1) == 0);
             if (cb & 2)
@@ -2163,27 +2073,8 @@ void CSceneObject::_setBB(const CPose& bbFrame, const C3Vector& bbHalfSize)
         {
             const char* cmd = "boundingBox";
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
-            if (App::getEventProtocolVersion() == 2)
-            {
-                double p[7] = {_bbFrame.X(0), _bbFrame.X(1), _bbFrame.X(2), _bbFrame.Q(1),
-                               _bbFrame.Q(2), _bbFrame.Q(3), _bbFrame.Q(0)};
-                ev->openKeyMap(cmd);
-                ev->appendKeyDoubleArray("pose", p, 7);
-                ev->appendKeyDoubleArray("hsize", _bbHalfSize.data, 3);
-                ev->closeArrayOrMap();
-            }
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                double p[7] = {_bbFrame.X(0), _bbFrame.X(1), _bbFrame.X(2), _bbFrame.Q(1),
-                               _bbFrame.Q(2), _bbFrame.Q(3), _bbFrame.Q(0)};
-                ev->appendKeyDoubleArray(prop(PropSceneObject::bbPose).name, p, 7);
-                ev->appendKeyDoubleArray(prop(PropSceneObject::DEPRECATED_bbHsize).name, _bbHalfSize.data, 3);
-            }
-            else
-            {
-                ev->appendKeyPose(prop(PropSceneObject::bbPose).name, _bbFrame);
-                ev->appendKeyVector3(prop(PropSceneObject::size).name, _bbHalfSize * 2.0);
-            }
+            ev->appendKeyPose(prop(PropSceneObject::bbPose).name, _bbFrame);
+            ev->appendKeyVector3(prop(PropSceneObject::size).name, _bbHalfSize * 2.0);
             App::scenes->pushEvent();
         }
     }
@@ -2588,10 +2479,7 @@ bool CSceneObject::setParent(CSceneObject* parent)
             const char* cmd = prop(PropSceneObject::parentUid).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
             ev->appendKeyInt64(cmd, pUid);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt64(prop(PropSceneObject::parent).name, pH);
-            else
-                ev->appendKeyHandle(prop(PropSceneObject::parent).name, pH);
+            ev->appendKeyHandle(prop(PropSceneObject::parent).name, pH);
             ev->appendKeyInt64(prop(PropSceneObject::DEPRECATED_parentHandle).name, pH); // for backward compatibility
             App::scenes->pushEvent();
         }
@@ -5544,8 +5432,6 @@ void CSceneObject::setObjectAlias_direct(const char* newName)
         if (_isInScene && App::scenes->getEventsEnabled())
         {
             std::string cmd = prop(PropSceneObject::name).name;
-            if (App::getEventProtocolVersion() <= 3)
-                cmd = "alias";
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd.c_str(), true);
             ev->appendKeyText(cmd.c_str(), newName);
             App::scenes->pushEvent();
@@ -5573,19 +5459,9 @@ void CSceneObject::setLocalTransformation(const CPose& tr)
         {
             const char* cmd = prop(PropSceneObject::pose).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                double p[7] = {tr.X(0), tr.X(1), tr.X(2), tr.Q(1), tr.Q(2), tr.Q(3), tr.Q(0)};
-                ev->appendKeyDoubleArray(prop(PropSceneObject::position).name, p, 3);
-                ev->appendKeyDoubleArray(cmd, p, 7);
-                ev->appendKeyDoubleArray(prop(PropSceneObject::quaternion).name, p + 3, 4);
-            }
-            else
-            {
-                ev->appendKeyVector3(prop(PropSceneObject::position).name, tr.X);
-                ev->appendKeyPose(cmd, tr);
-                ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, tr.Q);
-            }
+            ev->appendKeyVector3(prop(PropSceneObject::position).name, tr.X);
+            ev->appendKeyPose(cmd, tr);
+            ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, tr.Q);
             App::scenes->pushEvent();
         }
         _setLocalTransformation_send(_localTransformation);
@@ -5602,19 +5478,8 @@ void CSceneObject::setLocalTransformation(const CQuaternion& q)
         {
             const char* cmd = prop(PropSceneObject::pose).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                double p[7] = {_localTransformation.X(0), _localTransformation.X(1), _localTransformation.X(2),
-                               _localTransformation.Q(1), _localTransformation.Q(2), _localTransformation.Q(3),
-                               _localTransformation.Q(0)};
-                ev->appendKeyDoubleArray(cmd, p, 7);
-                ev->appendKeyDoubleArray(prop(PropSceneObject::quaternion).name, p + 3, 4);
-            }
-            else
-            {
-                ev->appendKeyPose(cmd, _localTransformation);
-                ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, _localTransformation.Q);
-            }
+            ev->appendKeyPose(cmd, _localTransformation);
+            ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, _localTransformation.Q);
             App::scenes->pushEvent();
         }
         CPose tr(_localTransformation);
@@ -5633,19 +5498,8 @@ void CSceneObject::setLocalTransformation(const C3Vector& x)
         {
             const char* cmd = prop(PropSceneObject::pose).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                double p[7] = {_localTransformation.X(0), _localTransformation.X(1), _localTransformation.X(2),
-                               _localTransformation.Q(1), _localTransformation.Q(2), _localTransformation.Q(3),
-                               _localTransformation.Q(0)};
-                ev->appendKeyDoubleArray(prop(PropSceneObject::position).name, p, 3);
-                ev->appendKeyDoubleArray(cmd, p, 7);
-            }
-            else
-            {
-                ev->appendKeyVector3(prop(PropSceneObject::position).name, _localTransformation.X);
-                ev->appendKeyPose(cmd, _localTransformation);
-            }
+            ev->appendKeyVector3(prop(PropSceneObject::position).name, _localTransformation.X);
+            ev->appendKeyPose(cmd, _localTransformation);
             App::scenes->pushEvent();
         }
         CPose tr(_localTransformation);
@@ -5736,10 +5590,7 @@ bool CSceneObject::_setChildren(std::vector<CSceneObject*>* children)
             std::vector<int> ch;
             for (size_t i = 0; i < _childList.size(); i++)
                 ch.push_back(_childList[i]->getObjectHandle());
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt32Array(cmd, ch.data(), ch.size());
-            else
-                ev->appendKeyHandleArray(cmd, ch.data(), ch.size());
+            ev->appendKeyHandleArray(cmd, ch.data(), ch.size());
             App::scenes->pushEvent();
         }
 #ifdef SIM_WITH_GUI

@@ -449,10 +449,7 @@ void CMeshWrapper::setCOM(const C3Vector& com)
         {
             const char* cmd = prop(PropShape::com).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(_parentObjectHandle, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDoubleArray(cmd, _com.data, 3);
-            else
-                ev->appendKeyVector3(cmd, _com);
+            ev->appendKeyVector3(cmd, _com);
             App::scenes->pushEvent();
         }
     }
@@ -493,18 +490,7 @@ void CMeshWrapper::setInertiaAndComputePMI(const C3X3Matrix& inertia, bool force
             C3Vector pmi(_pmi * _mass);
             ev->appendKeyMatrix(prop(PropShape::inertiaMatrix).name, _iMatrix * _mass);
             ev->appendKeyVector3(prop(PropShape::pmi).name, pmi.data);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyDoubleArray(prop(PropShape::DEPRECATED_pmi).name, pmi.data, 3);
-                double dat[9];
-                _in *= _mass;
-                _in.getData(dat);
-                ev->appendKeyDoubleArray("inertia", dat, 9);
-                _pmiRotFrame.getData(dat, true);
-                ev->appendKeyDoubleArray(prop(PropShape::pmiQuaternion).name, dat, 4);
-            }
-            else
-                ev->appendKeyQuaternion(prop(PropShape::pmiQuaternion).name, _pmiRotFrame);
+            ev->appendKeyQuaternion(prop(PropShape::pmiQuaternion).name, _pmiRotFrame);
             App::scenes->pushEvent();
         }
     }
@@ -1266,25 +1252,11 @@ void CMeshWrapper::addObjectEventData(int parentObjectHandle, CCbor* ev)
     if (_parentObjectHandle >= 0)
     {
         ev->appendKeyDouble(prop(PropShape::mass).name, _mass);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyDoubleArray(prop(PropShape::com).name, _com.data, 3);
-        else
-            ev->appendKeyVector3(prop(PropShape::com).name, _com);
+        ev->appendKeyVector3(prop(PropShape::com).name, _com);
         ev->appendKeyMatrix(prop(PropShape::inertiaMatrix).name, _iMatrix * _mass);
         C3Vector pmi(_pmi * _mass);
         ev->appendKeyVector3(prop(PropShape::pmi).name, pmi.data);
-        if (App::getEventProtocolVersion() <= 3)
-        {
-            ev->appendKeyDoubleArray(prop(PropShape::DEPRECATED_pmi).name, pmi.data, 3);
-            C3X3Matrix inertia(_iMatrix * _mass);
-            double dat[9];
-            inertia.getData(dat);
-            ev->appendKeyDoubleArray("inertia", dat, 9);
-            _pmiRotFrame.getData(dat, true);
-            ev->appendKeyDoubleArray(prop(PropShape::pmiQuaternion).name, dat, 4);
-        }
-        else
-            ev->appendKeyQuaternion(prop(PropShape::pmiQuaternion).name, _pmiRotFrame);
+        ev->appendKeyQuaternion(prop(PropShape::pmiQuaternion).name, _pmiRotFrame);
     }
 }
 

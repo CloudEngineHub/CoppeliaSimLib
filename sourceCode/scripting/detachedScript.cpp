@@ -1104,18 +1104,9 @@ void CDetachedScript::pushObjectCreationEvent()
 {
     CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _scriptUid, nullptr, false);
     Obj::addObjectEventData(ev);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyBool("scriptDisabled", _scriptIsDisabled);
-        ev->appendKeyInt64("scriptType", _scriptType);
-        ev->appendKeyInt64("scriptState", _scriptState);
-    }
-    else
-    {
-        ev->appendKeyBool(prop(PropDetachedScript::scriptEnabled).name, !_scriptIsDisabled);
-        ev->appendKeyText(prop(PropDetachedScript::scriptType).name, getScriptTypeStr().c_str());
-        ev->appendKeyInt64(prop(PropDetachedScript::scriptState).name, _scriptState);
-    }
+    ev->appendKeyBool(prop(PropDetachedScript::scriptEnabled).name, !_scriptIsDisabled);
+    ev->appendKeyText(prop(PropDetachedScript::scriptType).name, getScriptTypeStr().c_str());
+    ev->appendKeyInt64(prop(PropDetachedScript::scriptState).name, _scriptState);
     ev->appendKeyBool(prop(PropDetachedScript::restartOnError).name, _autoRestartOnError);
     ev->appendKeyInt64(prop(PropDetachedScript::execPriority).name, getScriptExecPriority());
     ev->appendKeyText(prop(PropDetachedScript::language).name, _lang.c_str());
@@ -1143,10 +1134,7 @@ void CDetachedScript::setScriptState(int state)
             const char* cmd = prop(PropDetachedScript::scriptState).name;
             CCbor* ev;
             ev = App::scenes->createEvent(EVENTTYPE_OBJECTCHANGED, _objectHandle, _scriptUid, cmd, true); // main, sandbox, add-ons, and old-type scripts
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt64("scriptState", _scriptState);
-            else
-                ev->appendKeyInt64(cmd, _scriptState);
+            ev->appendKeyInt64(cmd, _scriptState);
             App::scenes->pushEvent();
         }
     }
@@ -1251,10 +1239,7 @@ void CDetachedScript::setScriptIsDisabled(bool isDisabled)
             const char* cmd = prop(PropDetachedScript::scriptEnabled).name;
             CCbor* ev;
             ev = App::scenes->createEvent(EVENTTYPE_OBJECTCHANGED, _objectHandle, _scriptUid, cmd, true); // main, sandbox, add-ons, and old-type scripts
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyBool("scriptDisabled", _scriptIsDisabled);
-            else
-                ev->appendKeyBool(cmd, !_scriptIsDisabled);
+            ev->appendKeyBool(cmd, !_scriptIsDisabled);
             App::scenes->pushEvent();
         }
     }

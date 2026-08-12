@@ -367,16 +367,8 @@ void CDynamicsContainer::setDynamicEngineType(int t, int version)
         if (App::scenes->getEventsEnabled())
         {
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, prop(PropScene::dynamicsEngine).name, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                int ar[2] = {_dynamicEngineToUse, _dynamicEngineVersionToUse};
-                ev->appendKeyInt32Array(prop(PropScene::DEPRECATED_dynamicsEngine).name, ar, 2);
-            }
-            else
-            {
-                ev->appendKeyInt64(prop(PropScene::dynamicsEngine).name, _dynamicEngineToUse);
-                ev->appendKeyInt64(prop(PropScene::dynamicsEngineVersion).name, _dynamicEngineVersionToUse);
-            }
+            ev->appendKeyInt64(prop(PropScene::dynamicsEngine).name, _dynamicEngineToUse);
+            ev->appendKeyInt64(prop(PropScene::dynamicsEngineVersion).name, _dynamicEngineVersionToUse);
             App::scenes->pushEvent();
         }
         checkIfEngineSettingsAreDefault();
@@ -812,10 +804,7 @@ void CDynamicsContainer::setGravity(C3Vector gr)
         if (App::scenes->getEventsEnabled())
         {
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, prop(PropScene::gravity).name, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDoubleArray(prop(PropScene::gravity).name, _gravity.data, 3);
-            else
-                ev->appendKeyVector3(prop(PropScene::gravity).name, _gravity);
+            ev->appendKeyVector3(prop(PropScene::gravity).name, _gravity);
             App::scenes->pushEvent();
         }
     }
@@ -2394,18 +2383,9 @@ void CDynamicsContainer::appendGenesisData(CCbor* ev)
     ev->appendKeyBool(prop(PropScene::dynamicsEnabled).name, _dynamicsEnabled);
     ev->appendKeyBool(prop(PropScene::showContactPoints).name, _displayContactPoints);
     ev->appendKeyDouble(prop(PropScene::dynamicsStepSize).name, _stepSize);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        int ar[2] = {_dynamicEngineToUse, _dynamicEngineVersionToUse};
-        ev->appendKeyInt32Array(prop(PropScene::DEPRECATED_dynamicsEngine).name, ar, 2);
-        ev->appendKeyDoubleArray(prop(PropScene::gravity).name, _gravity.data, 3);
-    }
-    else
-    {
-        ev->appendKeyInt64(prop(PropScene::dynamicsEngine).name, _dynamicEngineToUse);
-        ev->appendKeyInt64(prop(PropScene::dynamicsEngineVersion).name, _dynamicEngineVersionToUse);
-        ev->appendKeyVector3(prop(PropScene::gravity).name, _gravity);
-    }
+    ev->appendKeyInt64(prop(PropScene::dynamicsEngine).name, _dynamicEngineToUse);
+    ev->appendKeyInt64(prop(PropScene::dynamicsEngineVersion).name, _dynamicEngineVersionToUse);
+    ev->appendKeyVector3(prop(PropScene::gravity).name, _gravity);
 
     // Engine properties:
     setBoolProperty(nullptr, false, ev);

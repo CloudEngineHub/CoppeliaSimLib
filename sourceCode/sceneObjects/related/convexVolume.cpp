@@ -2026,32 +2026,16 @@ void CConvexVolume::sendEventData(CCbor* eev)
     double agl[2] = {angle, insideAngleThing};
     int faceN[2] = {faceNumber, faceNumberFar};
     int subdivs[2] = {subdivisions, subdivisionsFar};
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyDouble("volume_offset", offset);
-        ev->appendKeyDouble("volume_range", range);
-        ev->appendKeyDoubleArray("volume_xSize", xsize, 2);
-        ev->appendKeyDoubleArray("volume_ySize", ysize, 2);
-        ev->appendKeyDoubleArray("volume_radius", radd, 2);
-        ev->appendKeyDoubleArray("volume_angle", agl, 2);
-        ev->appendKeyInt32Array("volume_faces", faceN, 2);
-        ev->appendKeyInt32Array("volume_subdivisions", subdivs, 2);
-        ev->appendKeyDoubleArray("volume_edges", volumeEdges.data(), volumeEdges.size());
-        ev->appendKeyDoubleArray("volume_closeEdges", nonDetectingVolumeEdges.data(), nonDetectingVolumeEdges.size());
-    }
-    else
-    {
-        ev->appendKeyDouble(prop(PropProximitySensor::offset).name, offset);
-        ev->appendKeyDouble(prop(PropProximitySensor::range).name, range);
-        ev->appendKeyDoubleArray(prop(PropProximitySensor::xSize).name, xsize, 2);
-        ev->appendKeyDoubleArray(prop(PropProximitySensor::ySize).name, ysize, 2);
-        ev->appendKeyDoubleArray(prop(PropProximitySensor::radius).name, radd, 2);
-        ev->appendKeyDoubleArray(prop(PropProximitySensor::angle).name, agl, 2);
-        ev->appendKeyInt32Array(prop(PropProximitySensor::faces).name, faceN, 2);
-        ev->appendKeyInt32Array(prop(PropProximitySensor::subdivisions).name, subdivs, 2);
-        ev->appendKeyDoubleArray(prop(PropProximitySensor::edges).name, volumeEdges.data(), volumeEdges.size());
-        ev->appendKeyDoubleArray(prop(PropProximitySensor::closeEdges).name, nonDetectingVolumeEdges.data(), nonDetectingVolumeEdges.size());
-    }
+    ev->appendKeyDouble(prop(PropProximitySensor::offset).name, offset);
+    ev->appendKeyDouble(prop(PropProximitySensor::range).name, range);
+    ev->appendKeyDoubleArray(prop(PropProximitySensor::xSize).name, xsize, 2);
+    ev->appendKeyDoubleArray(prop(PropProximitySensor::ySize).name, ysize, 2);
+    ev->appendKeyDoubleArray(prop(PropProximitySensor::radius).name, radd, 2);
+    ev->appendKeyDoubleArray(prop(PropProximitySensor::angle).name, agl, 2);
+    ev->appendKeyInt32Array(prop(PropProximitySensor::faces).name, faceN, 2);
+    ev->appendKeyInt32Array(prop(PropProximitySensor::subdivisions).name, subdivs, 2);
+    ev->appendKeyDoubleArray(prop(PropProximitySensor::edges).name, volumeEdges.data(), volumeEdges.size());
+    ev->appendKeyDoubleArray(prop(PropProximitySensor::closeEdges).name, nonDetectingVolumeEdges.data(), nonDetectingVolumeEdges.size());
 
     if (eev == nullptr)
         App::scenes->pushEvent();

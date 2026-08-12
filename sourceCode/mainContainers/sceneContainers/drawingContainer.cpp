@@ -67,10 +67,7 @@ void CDrawingContainer::_publishAllDrawingObjectHandlesEvent() const
         }
         const char* cmd = prop(PropScene::drawingObjects).name;
         CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyInt32Array(cmd, handles.data(), handles.size());
-        else
-            ev->appendKeyHandleArray(cmd, handles.data(), handles.size());
+        ev->appendKeyHandleArray(cmd, handles.data(), handles.size());
         App::scenes->pushEvent();
     }
 }
@@ -83,16 +80,8 @@ void CDrawingContainer::removeObject(int objectId)
         {
             if (App::scenes->getEventsEnabled())
             {
-                if (App::getEventProtocolVersion()  >= 3)
-                {
-                    App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED,  _allObjects[i]->getObjectHandle(), _allObjects[i]->getObjectHandle(), nullptr, false);
-                    App::scenes->pushEvent();
-                }
-                if (App::getEventProtocolVersion() <= 3)
-                { // For backw. compatibility
-                    App::scenes->createEvent("drawingObjectRemoved",  _allObjects[i]->getObjectHandle(), _allObjects[i]->getObjectHandle(), nullptr, false);
-                    App::scenes->pushEvent();
-                }
+                App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED,  _allObjects[i]->getObjectHandle(), _allObjects[i]->getObjectHandle(), nullptr, false);
+                App::scenes->pushEvent();
             }
 
             delete _allObjects[i];
@@ -145,10 +134,7 @@ void CDrawingContainer::pushGenesisEvents()
         addedObjects.push_back(dr->getObjectHandle());
         const char* cmd = prop(PropScene::drawingObjects).name;
         CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyInt32Array(cmd, addedObjects.data(), addedObjects.size());
-        else
-            ev->appendKeyHandleArray(cmd, addedObjects.data(), addedObjects.size());
+        ev->appendKeyHandleArray(cmd, addedObjects.data(), addedObjects.size());
         App::scenes->pushEvent();
     }
 }

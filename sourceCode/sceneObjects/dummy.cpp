@@ -272,33 +272,12 @@ void CDummy::removeSceneDependencies()
     setLinkedDummyHandle(-1, false);
 }
 
-void CDummy::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CDummy::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->openKeyMap(_objectTypeStr.c_str());
-        float c[9];
-        _dummyColor.getColor(c, sim_materialcomponent_diffuse);
-        _dummyColor.getColor(c + 3, sim_materialcomponent_specular);
-        _dummyColor.getColor(c + 6, sim_materialcomponent_emission);
-        ev->openKeyArray("colors");
-        ev->appendFloatArray(c, 9);
-        ev->closeArrayOrMap(); // colors
-    }
-    else
-        _dummyColor.addGenesisEventData(ev);
+    _dummyColor.addGenesisEventData(ev);
     ev->appendKeyDouble(prop(PropDummy::size).name, _dummySize);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyInt64("linkedDummyHandle", _linkedDummyHandle); // for backw. compatibility
-        ev->appendKeyInt64(prop(PropDummy::linkedDummy).name, _linkedDummyHandle);
-        ev->appendKeyInt64("dummyType", _linkType);
-    }
-    else
-    {
-        ev->appendKeyHandle(prop(PropDummy::linkedDummy).name, _linkedDummyHandle);
-        ev->appendKeyText(prop(PropDummy::dummyType).name, getDummyTypeStr().c_str());
-    }
+    ev->appendKeyHandle(prop(PropDummy::linkedDummy).name, _linkedDummyHandle);
+    ev->appendKeyText(prop(PropDummy::dummyType).name, getDummyTypeStr().c_str());
     ev->appendKeyText(prop(PropDummy::assemblyTag).name, _assemblyTag.c_str());
 
     // Engine properties:
@@ -309,9 +288,7 @@ void CDummy::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*
     setFloatArrayProperty(nullptr, dummy, ev);
     _sendEngineString(ev);
 
-    if (App::getEventProtocolVersion() == 2)
-        ev->closeArrayOrMap(); // dummy
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CDummy::copyYourself()
@@ -949,13 +926,7 @@ void CDummy::setLinkedDummyHandle(int handle, bool check)
         {
             const char* cmd = prop(PropDummy::linkedDummy).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyInt64(cmd, _linkedDummyHandle);
-                ev->appendKeyInt64("linkedDummyHandle", _linkedDummyHandle);
-            }
-            else
-                ev->appendKeyHandle(cmd, _linkedDummyHandle);
+            ev->appendKeyHandle(cmd, _linkedDummyHandle);
             App::scenes->pushEvent();
         }
         _reflectPropToLinkedDummy();
@@ -978,10 +949,7 @@ bool CDummy::setDummyType(int lt, bool check)
         {
             const char* cmd = prop(PropDummy::dummyType).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt64("dummyType", _linkType);
-            else
-                ev->appendKeyText(cmd, getDummyTypeStr().c_str());
+            ev->appendKeyText(cmd, getDummyTypeStr().c_str());
             App::scenes->pushEvent();
         }
         _setLinkType_sendOldIk(lt);
@@ -1830,10 +1798,7 @@ void CDummy::_sendEngineString(CCbor* eev /*= nullptr*/)
         std::string current(prope.getObjectProperties(_objectHandle));
         if (ev == nullptr)
             ev = App::scenes->createSceneObjectChangedEvent(this, false, prop(PropDummy::engineProperties).name, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyText("engineProperties", current.c_str());
-        else
-            ev->appendKeyText(prop(PropDummy::engineProperties).name, current.c_str());
+        ev->appendKeyText(prop(PropDummy::engineProperties).name, current.c_str());
         if ((ev != nullptr) && (eev == nullptr))
             App::scenes->pushEvent();
     }

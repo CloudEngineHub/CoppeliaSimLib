@@ -408,16 +408,8 @@ void CCollectionContainer::_removeCollection(int64_t collectionHandle)
         {
             if (App::scenes->getEventsEnabled())
             {
-                if (App::getEventProtocolVersion()  >= 3)
-                {
-                    App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED, collectionHandle, collectionHandle, nullptr, false);
-                    App::scenes->pushEvent();
-                }
-                if (App::getEventProtocolVersion() <= 3)
-                { // For backw. compatibility
-                    App::scenes->createEvent("collectionRemoved", -1, collectionHandle, nullptr, false);
-                    App::scenes->pushEvent();
-                }
+                App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED, collectionHandle, collectionHandle, nullptr, false);
+                App::scenes->pushEvent();
             }
             delete _allCollections[i];
             _allCollections.erase(_allCollections.begin() + i);
@@ -438,10 +430,7 @@ void CCollectionContainer::_addCollection(CCollection* collection)
             handles.push_back(_allCollections[i]->getObjectHandle());
         const char* cmd = prop(PropScene::collections).name;
         CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyInt64Array(cmd, handles.data(), handles.size());
-        else
-            ev->appendKeyHandleArray(cmd, handles.data(), handles.size());
+        ev->appendKeyHandleArray(cmd, handles.data(), handles.size());
         App::scenes->pushEvent();
     }
 }
@@ -499,10 +488,7 @@ void CCollectionContainer::pushGenesisEvents() const
         addedCollections.push_back(coll->getObjectHandle());
         const char* cmd = prop(PropScene::collections).name;
         CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        if (App::getEventProtocolVersion() <= 3)
-            ev->appendKeyInt32Array(cmd, addedCollections.data(), addedCollections.size());
-        else
-            ev->appendKeyHandleArray(cmd, addedCollections.data(), addedCollections.size());
+        ev->appendKeyHandleArray(cmd, addedCollections.data(), addedCollections.size());
         App::scenes->pushEvent();
     }
 }

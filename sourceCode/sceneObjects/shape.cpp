@@ -173,10 +173,7 @@ void CShape::setInitialDynamicLinearVelocity(const C3Vector& vel)
         {
             const char* cmd = prop(PropShape::initLinearVelocity).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDoubleArray(cmd, _initialDynamicLinearVelocity.data, 3);
-            else
-                ev->appendKeyVector3(cmd, _initialDynamicLinearVelocity);
+            ev->appendKeyVector3(cmd, _initialDynamicLinearVelocity);
             App::scenes->pushEvent();
         }
     }
@@ -197,10 +194,7 @@ void CShape::setInitialDynamicAngularVelocity(const C3Vector& vel)
         {
             const char* cmd = prop(PropShape::initAngularVelocity).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyDoubleArray(cmd, _initialDynamicAngularVelocity.data, 3);
-            else
-                ev->appendKeyVector3(cmd, _initialDynamicAngularVelocity);
+            ev->appendKeyVector3(cmd, _initialDynamicAngularVelocity);
             App::scenes->pushEvent();
         }
     }
@@ -374,16 +368,8 @@ void CShape::setDynamicVelocity(const C3Vector& linearV, const C3Vector& angular
         {
             const char* cmd = prop(PropShape::dynLinearVelocity).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyDoubleArray(cmd, _dynamicLinearVelocity.data, 3);
-                ev->appendKeyDoubleArray(prop(PropShape::dynAngularVelocity).name, _dynamicAngularVelocity.data, 3);
-            }
-            else
-            {
-                ev->appendKeyVector3(cmd, _dynamicLinearVelocity);
-                ev->appendKeyVector3(prop(PropShape::dynAngularVelocity).name, _dynamicAngularVelocity);
-            }
+            ev->appendKeyVector3(cmd, _dynamicLinearVelocity);
+            ev->appendKeyVector3(prop(PropShape::dynAngularVelocity).name, _dynamicAngularVelocity);
             App::scenes->pushEvent();
         }
     }
@@ -1355,18 +1341,6 @@ bool CShape::getCulling() const
 void CShape::setCulling(bool culState)
 {
     _mesh->setCulling(culState);
-    if (App::getEventProtocolVersion() == 2)
-    {
-        if (_isInScene && App::scenes->getEventsEnabled())
-        {
-            const char* cmd = "color";
-            CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            ev->openKeyMap(cmd);
-            ev->appendKeyBool("culling", culState);
-            ev->appendKeyInt64("index", 0);
-            App::scenes->pushEvent();
-        }
-    }
 }
 
 bool CShape::getVisibleEdges() const
@@ -1379,18 +1353,6 @@ bool CShape::getVisibleEdges() const
 void CShape::setVisibleEdges(bool v)
 {
     _mesh->setVisibleEdges(v);
-    if (App::getEventProtocolVersion() == 2)
-    {
-        if (_isInScene && App::scenes->getEventsEnabled())
-        {
-            const char* cmd = "color";
-            CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, false);
-            ev->openKeyMap(cmd);
-            ev->appendKeyBool("showEdges", v);
-            ev->appendKeyInt64("index", 0);
-            App::scenes->pushEvent();
-        }
-    }
 }
 
 double CShape::getShadingAngle() const
@@ -1523,10 +1485,8 @@ void CShape::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CShape::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CShape::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-        ev->openKeyMap(_objectTypeStr.c_str());
     _dynMaterial->setBoolProperty(nullptr, false, ev);
     _dynMaterial->setIntProperty(nullptr, 0, ev);
     _dynMaterial->setFloatProperty(nullptr, 0.0, ev);
@@ -1534,117 +1494,18 @@ void CShape::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*
     std::vector<double> dummy;
     _dynMaterial->setFloatArrayProperty(nullptr, dummy, ev);
     _dynMaterial->sendEngineString(ev);
-    if (App::getEventProtocolVersion() == 2)
+    if (sendAsChildlessOrphanMeshlessDetachedscriptless)
+        ev->appendKeyHandleArray(prop(PropShape::meshes).name, (int*)nullptr, 0);
+    else
     {
-        ev->openKeyArray(prop(PropShape::meshes).name);
         std::vector<CMesh*> all;
         std::vector<CPose> allTr;
         getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, &allTr);
+        std::vector<int64_t> mmid;
+        mmid.resize(all.size());
         for (size_t i = 0; i < all.size(); i++)
-        {
-            CMesh* geom = all[i];
-            CPose tr(allTr[i]);
-            ev->openMap();
-
-            const std::vector<float>* wvert = geom->getVerticesForDisplayAndDisk();
-            const std::vector<int>* wind = geom->getIndices();
-            const std::vector<float>* wnorm = geom->getNormalsForDisplayAndDisk();
-            std::vector<float> vertices;
-            vertices.resize(wvert->size());
-            for (size_t j = 0; j < wvert->size() / 3; j++)
-            {
-                C3Vector v;
-                v.setData(wvert->data() + j * 3);
-                v = tr * v;
-                vertices[3 * j + 0] = (float)v(0);
-                vertices[3 * j + 1] = (float)v(1);
-                vertices[3 * j + 2] = (float)v(2);
-            }
-            ev->appendKeyFloatArray("vertices", vertices.data(), vertices.size());
-            ev->appendKeyInt32Array("indices", wind->data(), wind->size());
-
-            std::vector<float> normals;
-            normals.resize(wind->size() * 3);
-            for (size_t j = 0; j < wind->size(); j++)
-            {
-                C3Vector n;
-                n.setData(&(wnorm[0])[0] + j * 3);
-                n = tr.Q * n; // only orientation
-                normals[3 * j + 0] = (float)n(0);
-                normals[3 * j + 1] = (float)n(1);
-                normals[3 * j + 2] = (float)n(2);
-            }
-            ev->appendKeyFloatArray("normals", normals.data(), normals.size());
-
-            float c[9];
-            geom->color.getColor(c + 0, sim_materialcomponent_diffuse);
-            geom->color.getColor(c + 3, sim_materialcomponent_specular);
-            geom->color.getColor(c + 6, sim_materialcomponent_emission);
-            ev->appendKeyFloatArray("color", c, 9);
-            ev->appendKeyDouble("shadingAngle", geom->getShadingAngle());
-            ev->appendKeyBool("showEdges", geom->getVisibleEdges());
-            ev->appendKeyBool("culling", geom->getCulling());
-            double transp = 0.0;
-            if (geom->color.getTranslucid())
-                transp = 1.0 - geom->color.getOpacity();
-            ev->appendKeyDouble("transparency", transp);
-
-            int options = 0;
-            if (geom->getCulling())
-                options |= 1;
-            if (geom->getWireframe())
-                options |= 2;
-            ev->appendKeyInt64("options", options);
-
-            CTextureProperty* tp = geom->getTextureProperty();
-            CTextureObject* to = nullptr;
-            const std::vector<float>* tc = nullptr;
-            if (tp != nullptr)
-            {
-                to = tp->getTextureObject();
-                tc = tp->getTextureCoordinates(-1, wvert[0], wind[0]);
-            }
-
-            if ((to != nullptr) && (tc != nullptr))
-            {
-                int tRes[2];
-                to->getTextureSize(tRes[0], tRes[1]);
-                ev->openKeyMap("texture");
-                ev->appendKeyBuff("rawTexture", to->getTextureBufferPointer(), tRes[1] * tRes[0] * 4);
-                ev->appendKeyInt32Array("resolution", tRes, 2);
-                ev->appendKeyFloatArray("coordinates", tc->data(), tc->size());
-                ev->appendKeyInt64("applyMode", tp->getApplyMode());
-
-                int options = 0;
-                if (tp->getRepeatU())
-                    options |= 1;
-                if (tp->getRepeatV())
-                    options |= 2;
-                if (tp->getInterpolateColors())
-                    options |= 4;
-                ev->appendKeyInt64("options", options);
-                ev->appendKeyInt64("id", tp->getTextureObjectID());
-                ev->closeArrayOrMap(); // texture
-            }
-            ev->closeArrayOrMap(); // one mesh
-        }
-        ev->closeArrayOrMap(); // meshes
-    }
-    else
-    {
-        if (sendAsChildlessOrphanMeshless)
-            ev->appendKeyHandleArray(prop(PropShape::meshes).name, (int*)nullptr, 0);
-        else
-        {
-            std::vector<CMesh*> all;
-            std::vector<CPose> allTr;
-            getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, &allTr);
-            std::vector<int64_t> mmid;
-            mmid.resize(all.size());
-            for (size_t i = 0; i < all.size(); i++)
-                mmid[i] = all[i]->getObjectHandle();
-            ev->appendKeyHandleArray(prop(PropShape::meshes).name, mmid.data(), mmid.size());
-        }
+            mmid[i] = all[i]->getObjectHandle();
+        ev->appendKeyHandleArray(prop(PropShape::meshes).name, mmid.data(), mmid.size());
     }
 
     ev->appendKeyInt64(prop(PropShape::respondableMask).name, _respondableMask);
@@ -1653,28 +1514,16 @@ void CShape::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*
     ev->appendKeyBool(prop(PropShape::kinematic).name, _shapeIsDynamicallyKinematic);
     ev->appendKeyBool(prop(PropShape::respondable).name, _shapeIsDynamicallyRespondable);
     ev->appendKeyBool(prop(PropShape::setToDynamicWithParent).name, _setAutomaticallyToNonStaticIfGetsParent);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyDoubleArray(prop(PropShape::initLinearVelocity).name, _initialDynamicLinearVelocity.data, 3);
-        ev->appendKeyDoubleArray(prop(PropShape::initAngularVelocity).name, _initialDynamicAngularVelocity.data, 3);
-        ev->appendKeyDoubleArray(prop(PropShape::dynLinearVelocity).name, _dynamicLinearVelocity.data, 3);
-        ev->appendKeyDoubleArray(prop(PropShape::dynAngularVelocity).name, _dynamicAngularVelocity.data, 3);
-    }
-    else
-    {
-        ev->appendKeyVector3(prop(PropShape::initLinearVelocity).name, _initialDynamicLinearVelocity);
-        ev->appendKeyVector3(prop(PropShape::initAngularVelocity).name, _initialDynamicAngularVelocity);
-        ev->appendKeyVector3(prop(PropShape::dynLinearVelocity).name, _dynamicLinearVelocity);
-        ev->appendKeyVector3(prop(PropShape::dynAngularVelocity).name, _dynamicAngularVelocity);
-    }
+    ev->appendKeyVector3(prop(PropShape::initLinearVelocity).name, _initialDynamicLinearVelocity);
+    ev->appendKeyVector3(prop(PropShape::initAngularVelocity).name, _initialDynamicAngularVelocity);
+    ev->appendKeyVector3(prop(PropShape::dynLinearVelocity).name, _dynamicLinearVelocity);
+    ev->appendKeyVector3(prop(PropShape::dynAngularVelocity).name, _dynamicAngularVelocity);
     ev->appendKeyBool(prop(PropShape::convex).name, _mesh->isConvex());
     ev->appendKeyBool(prop(PropShape::primitive).name, _mesh->isPure());
     ev->appendKeyBool(prop(PropShape::compound).name, (_mesh->getComponentCount() > 1));
     _mesh->addObjectEventData(_objectHandle, ev);
 
-    if (App::getEventProtocolVersion() == 2)
-        ev->closeArrayOrMap(); // shape
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 void CShape::copyAttributesTo(CShape* target)

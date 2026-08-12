@@ -758,14 +758,6 @@ void CCbor::createEvent(const char* event, const char* fieldName, const char* ob
         appendText("data");
         openMap(); // holding the data
         _inDataField = true;
-        if (App::getEventProtocolVersion() == 2)
-        {
-            if (objType != nullptr)
-            {
-                appendText(objType);
-                openMap(); // holding the scene object's data specific to the object type
-            }
-        }
     }
     // Do not open any other map or array below here
 }

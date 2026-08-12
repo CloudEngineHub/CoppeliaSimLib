@@ -79,11 +79,11 @@ void CCustomSceneObject::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CCustomSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CCustomSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
     _objectColor.addGenesisEventData(ev);
     ev->appendKeyDouble(prop(PropCustomSceneObject::size).name, _objectSize);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CCustomSceneObject::copyYourself()

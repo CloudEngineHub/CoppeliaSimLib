@@ -23,7 +23,7 @@ class CPointCloud : public CSceneObject
     virtual ~CPointCloud();
 
     // Following functions are inherited from CSceneObject
-    void addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless = false) override;
+    void addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless = false) override;
     CSceneObject* copyYourself() override;
     void removeSceneDependencies() override;
     void scaleObject(double scalingFactor) override;

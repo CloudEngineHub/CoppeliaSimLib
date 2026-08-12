@@ -209,10 +209,7 @@ void CFolderSystem::setScenesPath(const char* path)
         {
             const char* cmd = prop(PropApp::sceneDir).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_app, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyText("scenePath", _scenesPath.c_str());
-            else
-                ev->appendKeyText(cmd, _scenesPath.c_str());
+            ev->appendKeyText(cmd, _scenesPath.c_str());
             App::scenes->pushEvent();
         }
     }
@@ -235,10 +232,7 @@ void CFolderSystem::setModelsPath(const char* path)
         {
             const char* cmd = prop(PropApp::modelDir).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_app, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyText("modelPath", _modelsPath.c_str());
-            else
-                ev->appendKeyText(cmd, _modelsPath.c_str());
+            ev->appendKeyText(cmd, _modelsPath.c_str());
             App::scenes->pushEvent();
         }
     }
@@ -261,10 +255,7 @@ void CFolderSystem::setImportExportPath(const char* path)
         {
             const char* cmd = prop(PropApp::importExportDir).name;
             CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_app, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyText("importExportPath", _importExportPath.c_str());
-            else
-                ev->appendKeyText(cmd, _importExportPath.c_str());
+            ev->appendKeyText(cmd, _importExportPath.c_str());
             App::scenes->pushEvent();
         }
     }

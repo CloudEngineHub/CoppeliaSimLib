@@ -7318,27 +7318,13 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
             if ((index >= 0) && (index < int(all.size())) && (colorComponent <= sim_colorcomponent_auxiliary))
             {
                 CMesh* geom = all[index];
-                if (App::getEventProtocolVersion() == 2)
+                if (colorComponent == sim_colorcomponent_transparency)
                 {
-                    if (colorComponent == sim_colorcomponent_transparency)
-                    {
-                        geom->color.setTranslucid(rgbData[0] != 0.0);
-                        geom->color.setOpacity(rgbData[0]);
-                    }
-                    else
-                        geom->color.setColor(rgbData, colorComponent);
-                    geom->color.pushShapeColorChangeEvent(objectHandle, index);
+                    float ccol = 1.0f - rgbData[0];
+                    geom->setColor(&ccol, colorComponent);
                 }
                 else
-                {
-                    if (colorComponent == sim_colorcomponent_transparency)
-                    {
-                        float ccol = 1.0f - rgbData[0];
-                        geom->setColor(&ccol, colorComponent);
-                    }
-                    else
-                        geom->setColor(rgbData, colorComponent);
-                }
+                    geom->setColor(rgbData, colorComponent);
                 retVal = 1;
             }
         }
@@ -7348,12 +7334,6 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
             if ((index == 0) && (colorComponent <= sim_materialcomponent_emission))
             {
                 dummy->getDummyColor()->setColor(rgbData, colorComponent);
-                if (App::getEventProtocolVersion() == 2)
-                {
-                    float cols[9];
-                    dummy->getDummyColor()->getNewColors(cols);
-                    CColorObject::pushColorChangeEvent(objectHandle, cols);
-                }
                 retVal = 1;
             }
         }
@@ -7363,12 +7343,6 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
             if ((index == 0) && (colorComponent <= sim_materialcomponent_emission))
             {
                 obj->getObjectColor()->setColor(rgbData, colorComponent);
-                if (App::getEventProtocolVersion() == 2)
-                {
-                    float cols[9];
-                    obj->getObjectColor()->getNewColors(cols);
-                    CColorObject::pushColorChangeEvent(objectHandle, cols);
-                }
                 retVal = 1;
             }
         }
@@ -7378,12 +7352,6 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
             if ((index == 0) && (colorComponent <= sim_materialcomponent_emission))
             {
                 camera->getColor(false)->setColor(rgbData, colorComponent);
-                if (App::getEventProtocolVersion() == 2)
-                {
-                    float cols[9];
-                    camera->getColor(false)->getNewColors(cols);
-                    CColorObject::pushColorChangeEvent(objectHandle, cols);
-                }
                 retVal = 1;
             }
         }
@@ -7393,12 +7361,6 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
             if ((index == 0) && (colorComponent <= sim_materialcomponent_emission))
             {
                 joint->getColor(false)->setColor(rgbData, colorComponent);
-                if (App::getEventProtocolVersion() == 2)
-                {
-                    float cols[9];
-                    joint->getColor(false)->getNewColors(cols);
-                    CColorObject::pushColorChangeEvent(objectHandle, cols);
-                }
                 retVal = 1;
             }
         }
@@ -7410,13 +7372,6 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
                 light->getColor(index == 1)->setColor(rgbData, colorComponent);
                 retVal = 1;
             }
-            if (App::getEventProtocolVersion() == 2)
-            {
-                float cols[2 * 9];
-                light->getColor(false)->getNewColors(cols);
-                light->getColor(true)->getNewColors(cols + 9);
-                CColorObject::pushColorChangeEvent(objectHandle, cols, cols + 9);
-            }
         }
         if (it->getObjectType() == sim_sceneobject_proximitysensor)
         {
@@ -7426,13 +7381,6 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
                 sensor->getColor(index)->setColor(rgbData, colorComponent);
                 retVal = 1;
             }
-            if (App::getEventProtocolVersion() == 2)
-            {
-                float cols[2 * 9];
-                sensor->getColor(0)->getNewColors(cols);
-                sensor->getColor(1)->getNewColors(cols + 9);
-                CColorObject::pushColorChangeEvent(objectHandle, cols, cols + 9);
-            }
         }
         if (it->getObjectType() == sim_sceneobject_visionsensor)
         {
@@ -7440,12 +7388,6 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
             if ((index == 0) && (colorComponent <= sim_materialcomponent_emission))
             {
                 sensor->getColor()->setColor(rgbData, colorComponent);
-                if (App::getEventProtocolVersion() == 2)
-                {
-                    float cols[9];
-                    sensor->getColor()->getNewColors(cols);
-                    CColorObject::pushColorChangeEvent(objectHandle, cols);
-                }
                 retVal = 1;
             }
         }
@@ -7455,12 +7397,6 @@ int simSetObjectColor_internal(int objectHandle, int index, int colorComponent, 
             if ((index == 0) && (colorComponent <= sim_materialcomponent_emission))
             {
                 sensor->getColor(false)->setColor(rgbData, colorComponent);
-                if (App::getEventProtocolVersion() == 2)
-                {
-                    float cols[9];
-                    sensor->getColor(false)->getNewColors(cols);
-                    CColorObject::pushColorChangeEvent(objectHandle, cols);
-                }
                 retVal = 1;
             }
         }

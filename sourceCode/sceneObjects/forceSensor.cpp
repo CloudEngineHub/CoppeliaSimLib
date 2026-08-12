@@ -102,10 +102,7 @@ void CForceSensor::setFilterType(int t)
         {
             const char* cmd = prop(PropForceSensor::filterType).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-                ev->appendKeyInt64(prop(PropForceSensor::DEPRECATED_filterType).name, _filterType);
-            else
-                ev->appendKeyInt64(cmd, _filterType);
+            ev->appendKeyInt64(cmd, _filterType);
             App::scenes->pushEvent();
         }
     }
@@ -280,16 +277,8 @@ void CForceSensor::_setForceAndTorque(bool valid, const C3Vector* f /*= nullptr*
         {
             const char* cmd = prop(PropForceSensor::sensorForce).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyDoubleArray(cmd, _lastForce_dynStep.data, 3);
-                ev->appendKeyDoubleArray(prop(PropForceSensor::sensorTorque).name, _lastTorque_dynStep.data, 3);
-            }
-            else
-            {
-                ev->appendKeyVector3(cmd, _lastForce_dynStep);
-                ev->appendKeyVector3(prop(PropForceSensor::sensorTorque).name, _lastTorque_dynStep);
-            }
+            ev->appendKeyVector3(cmd, _lastForce_dynStep);
+            ev->appendKeyVector3(prop(PropForceSensor::sensorTorque).name, _lastTorque_dynStep);
             App::scenes->pushEvent();
         }
     }
@@ -316,16 +305,8 @@ void CForceSensor::_setFilteredForceAndTorque(bool valid, const C3Vector* f /*= 
         {
             const char* cmd = prop(PropForceSensor::filteredSensorForce).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                ev->appendKeyDoubleArray(cmd, _filteredDynamicForces.data, 3);
-                ev->appendKeyDoubleArray(prop(PropForceSensor::filteredSensorTorque).name, _filteredDynamicTorques.data, 3);
-            }
-            else
-            {
-                ev->appendKeyVector3(cmd, _filteredDynamicForces);
-                ev->appendKeyVector3(prop(PropForceSensor::filteredSensorTorque).name, _filteredDynamicTorques);
-            }
+            ev->appendKeyVector3(cmd, _filteredDynamicForces);
+            ev->appendKeyVector3(prop(PropForceSensor::filteredSensorTorque).name, _filteredDynamicTorques);
             App::scenes->pushEvent();
         }
     }
@@ -503,14 +484,7 @@ void CForceSensor::setIntrinsicTransformationError(const CPose& tr)
         {
             const char* cmd = prop(PropForceSensor::intrinsicError).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-            if (App::getEventProtocolVersion() <= 3)
-            {
-                double p[7];
-                _intrinsicTransformationError.getData(p, true);
-                ev->appendKeyDoubleArray(cmd, p, 7);
-            }
-            else
-                ev->appendKeyPose(cmd, _intrinsicTransformationError);
+            ev->appendKeyPose(cmd, _intrinsicTransformationError);
             App::scenes->pushEvent();
         }
     }
@@ -652,55 +626,23 @@ void CForceSensor::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CForceSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CForceSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->openKeyMap(_objectTypeStr.c_str());
-        ev->openKeyArray("colors");
-        float c[9];
-        _color.getColor(c, sim_materialcomponent_diffuse);
-        _color.getColor(c + 3, sim_materialcomponent_specular);
-        _color.getColor(c + 6, sim_materialcomponent_emission);
-        ev->appendFloatArray(c, 9);
-        _color_removeSoon.getColor(c, sim_materialcomponent_diffuse);
-        _color_removeSoon.getColor(c + 3, sim_materialcomponent_specular);
-        _color_removeSoon.getColor(c + 6, sim_materialcomponent_emission);
-        ev->appendFloatArray(c, 9);
-        ev->closeArrayOrMap(); // colors
-    }
-    else
-        _color.addGenesisEventData(ev);
+    _color.addGenesisEventData(ev);
     ev->appendKeyDouble(prop(PropForceSensor::size).name, _forceSensorSize);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        double p[7];
-        _intrinsicTransformationError.getData(p, true);
-        ev->appendKeyDoubleArray(prop(PropForceSensor::intrinsicError).name, p, 7);
-        ev->appendKeyDoubleArray(prop(PropForceSensor::sensorForce).name, _lastForce_dynStep.data, 3);
-        ev->appendKeyDoubleArray(prop(PropForceSensor::sensorTorque).name, _lastTorque_dynStep.data, 3);
-        ev->appendKeyDoubleArray(prop(PropForceSensor::filteredSensorForce).name, _filteredDynamicForces.data, 3);
-        ev->appendKeyDoubleArray(prop(PropForceSensor::filteredSensorTorque).name, _filteredDynamicTorques.data, 3);
-        ev->appendKeyInt64(prop(PropForceSensor::DEPRECATED_filterType).name, _filterType);
-    }
-    else
-    {
-        ev->appendKeyPose(prop(PropForceSensor::intrinsicError).name, _intrinsicTransformationError);
-        ev->appendKeyVector3(prop(PropForceSensor::sensorForce).name, _lastForce_dynStep);
-        ev->appendKeyVector3(prop(PropForceSensor::sensorTorque).name, _lastTorque_dynStep);
-        ev->appendKeyVector3(prop(PropForceSensor::filteredSensorForce).name, _filteredDynamicForces);
-        ev->appendKeyVector3(prop(PropForceSensor::filteredSensorTorque).name, _filteredDynamicTorques);
-        ev->appendKeyInt64(prop(PropForceSensor::filterType).name, _filterType);
-    }
+    ev->appendKeyPose(prop(PropForceSensor::intrinsicError).name, _intrinsicTransformationError);
+    ev->appendKeyVector3(prop(PropForceSensor::sensorForce).name, _lastForce_dynStep);
+    ev->appendKeyVector3(prop(PropForceSensor::sensorTorque).name, _lastTorque_dynStep);
+    ev->appendKeyVector3(prop(PropForceSensor::filteredSensorForce).name, _filteredDynamicForces);
+    ev->appendKeyVector3(prop(PropForceSensor::filteredSensorTorque).name, _filteredDynamicTorques);
+    ev->appendKeyInt64(prop(PropForceSensor::filterType).name, _filterType);
     ev->appendKeyBool(prop(PropForceSensor::forceThresholdEnabled).name, _forceThresholdEnabled);
     ev->appendKeyBool(prop(PropForceSensor::torqueThresholdEnabled).name, _torqueThresholdEnabled);
     ev->appendKeyInt64(prop(PropForceSensor::filterSampleSize).name, _filterSampleSize);
     ev->appendKeyInt64(prop(PropForceSensor::consecutiveViolationsToTrigger).name, _consecutiveViolationsToTrigger);
     ev->appendKeyDouble(prop(PropForceSensor::forceThreshold).name, _forceThreshold);
     ev->appendKeyDouble(prop(PropForceSensor::torqueThreshold).name, _torqueThreshold);
-    if (App::getEventProtocolVersion() == 2)
-        ev->closeArrayOrMap(); // forceSensor
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CForceSensor::copyYourself()

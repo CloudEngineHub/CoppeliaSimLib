@@ -146,20 +146,10 @@ void CViewableBase::setClippingPlanes(double nearPlane, double farPlane)
         _farClippingPlane = farPlane;
         if (_isInScene && App::scenes->getEventsEnabled())
         {
-            if (App::getEventProtocolVersion() == 2)
-            {
-                const char* cmd = "nearClippingPlane";
-                CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-                ev->appendKeyDouble(cmd, _nearClippingPlane);
-                ev->appendKeyDouble("farClippingPlane", _farClippingPlane);
-            }
-            else
-            {
-                const char* cmd = prop(PropCamera::clippingPlanes).name;
-                CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-                double arr[2] = {_nearClippingPlane, _farClippingPlane};
-                ev->appendKeyDoubleArray(cmd, arr, 2);
-            }
+            const char* cmd = prop(PropCamera::clippingPlanes).name;
+            CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
+            double arr[2] = {_nearClippingPlane, _farClippingPlane};
+            ev->appendKeyDoubleArray(cmd, arr, 2);
             App::scenes->pushEvent();
         }
         computeVolumeVectors();
@@ -205,10 +195,7 @@ void CViewableBase::setOrthoViewSize(double theSize)
         if (_isInScene && App::scenes->getEventsEnabled())
         {
             std::string cmd;
-            if (App::getEventProtocolVersion() == 2)
-                cmd = "orthoSize";
-            else
-                cmd = prop(PropCamera::viewSize).name;
+            cmd = prop(PropCamera::viewSize).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd.c_str(), true);
             ev->appendKeyDouble(cmd.c_str(), _orthoViewSize);
             App::scenes->pushEvent();
@@ -479,10 +466,7 @@ void CViewableBase::setPerspective(bool p)
         if (_isInScene && App::scenes->getEventsEnabled())
         {
             std::string cmd;
-            if (App::getEventProtocolVersion() == 2)
-                cmd = "perspectiveMode";
-            else
-                cmd = prop(PropCamera::perspective).name;
+            cmd = prop(PropCamera::perspective).name;
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd.c_str(), true);
             ev->appendKeyBool(cmd.c_str(), _perspective);
             App::scenes->pushEvent();
@@ -565,29 +549,10 @@ void CViewableBase::computeVolumeVectors()
             _volumeVectorFar = farV;
             if (_isInScene && App::scenes->getEventsEnabled())
             {
-                if (App::getEventProtocolVersion() == 2)
-                {
-                    const char* cmd = "frustumVectors";
-                    CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-                    ev->openKeyMap(cmd);
-                    ev->appendKeyDoubleArray("near", _volumeVectorNear.data, 3);
-                    ev->appendKeyDoubleArray("far", _volumeVectorFar.data, 3);
-                }
-                else
-                {
-                    const char* cmd = prop(PropCamera::frustumCornerNear).name;
-                    CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
-                    if (App::getEventProtocolVersion() <= 3)
-                    {
-                        ev->appendKeyDoubleArray(cmd, _volumeVectorNear.data, 3);
-                        ev->appendKeyDoubleArray(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar.data, 3);
-                    }
-                    else
-                    {
-                        ev->appendKeyVector3(cmd, _volumeVectorNear);
-                        ev->appendKeyVector3(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar);
-                    }
-                }
+                const char* cmd = prop(PropCamera::frustumCornerNear).name;
+                CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, false, cmd, true);
+                ev->appendKeyVector3(cmd, _volumeVectorNear);
+                ev->appendKeyVector3(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar);
                 App::scenes->pushEvent();
             }
         }
@@ -621,7 +586,7 @@ void CViewableBase::getVolumeVectors(C3Vector& n, C3Vector& f) const
     f = _volumeVectorFar;
 }
 
-void CViewableBase::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CViewableBase::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
     ev->appendKeyDouble(prop(PropCamera::viewAngle).name, _viewAngle);
     ev->appendKeyDouble(prop(PropCamera::viewSize).name, _orthoViewSize);
@@ -629,18 +594,10 @@ void CViewableBase::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMesh
     ev->appendKeyDoubleArray(prop(PropCamera::clippingPlanes).name, arr, 2);
     ev->appendKeyBool(prop(PropCamera::perspective).name, _perspective);
     ev->appendKeyBool(prop(PropCamera::showFrustum).name, _showVolume);
-    if (App::getEventProtocolVersion() <= 3)
-    {
-        ev->appendKeyDoubleArray(prop(PropCamera::frustumCornerNear).name, _volumeVectorNear.data, 3);
-        ev->appendKeyDoubleArray(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar.data, 3);
-    }
-    else
-    {
-        ev->appendKeyVector3(prop(PropCamera::frustumCornerNear).name, _volumeVectorNear);
-        ev->appendKeyVector3(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar);
-    }
+    ev->appendKeyVector3(prop(PropCamera::frustumCornerNear).name, _volumeVectorNear);
+    ev->appendKeyVector3(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar);
     ev->appendKeyInt32Array(prop(PropCamera::resolution).name, _resolution, 2);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 int CViewableBase::setBoolProperty(const char* pName, bool pState)

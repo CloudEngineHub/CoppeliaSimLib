@@ -652,7 +652,7 @@ void CMarker::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CMarker::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CMarker::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
     ev->appendKeyText(prop(PropMarker::type).name, getMarkerTypeStr().c_str());
     ev->appendKeyBool(prop(PropMarker::cyclic).name, _itemOptions & sim_markeropts_cyclic);
@@ -666,7 +666,7 @@ void CMarker::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /
         ev->appendKeyMatrix(prop(PropMarker::normals).name, _normals.data(), 3, _normals.size() / 3, false);
     }
     _updateMarkerEvent(false, ev);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CMarker::copyYourself()

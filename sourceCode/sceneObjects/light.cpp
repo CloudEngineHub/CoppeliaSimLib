@@ -323,42 +323,18 @@ void CLight::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CLight::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshless /*= false*/)
+void CLight::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
 {
-    if (App::getEventProtocolVersion() == 2)
-    {
-        ev->openKeyMap(_objectTypeStr.c_str());
-        ev->openKeyArray("colors");
-        float c[9];
-        objectColor.getColor(c, sim_materialcomponent_diffuse);
-        objectColor.getColor(c + 3, sim_materialcomponent_specular);
-        objectColor.getColor(c + 6, sim_materialcomponent_emission);
-        ev->appendFloatArray(c, 9);
-        lightColor.getColor(c, sim_materialcomponent_lightdiffuse);
-        lightColor.getColor(c + 3, sim_materialcomponent_specular);
-        lightColor.getColor(c + 6, sim_materialcomponent_emission);
-        ev->appendFloatArray(c, 9);
-        ev->closeArrayOrMap(); // colors
-    }
-    else
-    {
-        objectColor.addGenesisEventData(ev);
-        lightColor.addGenesisEventData(ev);
-    }
+    objectColor.addGenesisEventData(ev);
+    lightColor.addGenesisEventData(ev);
     ev->appendKeyDouble(prop(PropLight::size).name, _lightSize);
-    if (App::getEventProtocolVersion() <= 3)
-        ev->appendKeyInt64("lightType", _lightType);
-    else
-        ev->appendKeyText(prop(PropLight::lightType).name, getLightTypeStr().c_str());
+    ev->appendKeyText(prop(PropLight::lightType).name, getLightTypeStr().c_str());
     ev->appendKeyDouble(prop(PropLight::spotCutoffAngle).name, _spotCutoffAngle);
     ev->appendKeyInt64(prop(PropLight::spotExponent).name, _spotExponent);
     ev->appendKeyBool(prop(PropLight::enabled).name, lightActive);
     double arr[3] = {constantAttenuation, linearAttenuation, quadraticAttenuation};
     ev->appendKeyDoubleArray(prop(PropLight::attenuationFactors).name, arr, 3);
-    // todo
-    if (App::getEventProtocolVersion() == 2)
-        ev->closeArrayOrMap(); // light
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshless);
+    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CLight::copyYourself()

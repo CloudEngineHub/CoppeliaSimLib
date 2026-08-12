@@ -17,10 +17,6 @@ class CColorObject
     bool setColor(const float theColor[3], unsigned char colorMode);
     bool setColor(float r, float g, float b, unsigned char colorMode);
 
-    // Only with event protocol version 2:
-    void pushShapeColorChangeEvent(int objectHandle, int colorIndex);
-    static void pushColorChangeEvent(int objectHandle, float col1[9], float col2[9] = nullptr, float col3[9] = nullptr, float col4[9] = nullptr);
-
     void addGenesisEventData(CCbor* ev) const;
     void getNewColors(float cols[9]) const;
     void copyYourselfInto(CColorObject* it) const;
