@@ -125,17 +125,20 @@ void CDrawingContainer::announceScriptStateWillBeErased(int detachedScriptHandle
 
 void CDrawingContainer::pushGenesisEvents()
 {
-    std::vector<int> addedObjects;
-    for (size_t i = 0; i < _allObjects.size(); i++)
+    if (App::scenes->getEventsEnabled())
     {
-        CDrawingObject* dr = _allObjects[i];
-        dr->pushAddEvent();
-        // We need to "fake" adding that drawing object:
-        addedObjects.push_back(dr->getObjectHandle());
-        const char* cmd = prop(PropScene::drawingObjects).name;
-        CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        ev->appendKeyHandleArray(cmd, addedObjects.data(), addedObjects.size());
-        App::scenes->pushEvent();
+        std::vector<int> addedObjects;
+        for (size_t i = 0; i < _allObjects.size(); i++)
+        {
+            CDrawingObject* dr = _allObjects[i];
+            dr->pushAddEvent();
+            // We need to "fake" adding that drawing object:
+            addedObjects.push_back(dr->getObjectHandle());
+            const char* cmd = prop(PropScene::drawingObjects).name;
+            CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
+            ev->appendKeyHandleArray(cmd, addedObjects.data(), addedObjects.size());
+            App::scenes->pushEvent();
+        }
     }
 }
 

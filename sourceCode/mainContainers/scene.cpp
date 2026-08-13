@@ -203,6 +203,7 @@ void CScene::rebuildScene_oldIk()
 bool CScene::loadScene(CSer& ar, bool forUndoRedoOperation)
 {
     bool retVal = false;
+    App::scenes->disableEvents();
     sceneObjects->eraseAllObjects(true);
     if (ar.getFileType() == CSer::filetype_csim_xml_simplescene_file)
     {
@@ -222,7 +223,9 @@ bool CScene::loadScene(CSer& ar, bool forUndoRedoOperation)
     }
 
     App::scenes->callScripts(sim_syscb_afterload, nullptr, nullptr);
-    return (retVal);
+    App::scenes->enableEvents();
+    App::pushGenesisEvents();
+    return retVal;
 }
 
 void CScene::saveScene(CSer& ar, bool regularSave /*= true*/)
@@ -1244,30 +1247,33 @@ void CScene::callScripts(int callType, CInterfaceStack* inStack, CInterfaceStack
 
 void CScene::pushGenesisEvents()
 {
-    sceneObjects->embeddedScriptContainer->pushMainScriptGenesisEvent(); // first
+    if (App::scenes->getEventsEnabled())
+    {
+        sceneObjects->embeddedScriptContainer->pushMainScriptGenesisEvent(); // first
 
-    CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
-    Obj::addObjectEventData(ev);
+        CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
+        Obj::addObjectEventData(ev);
 //    ev->appendKeyInt64(prop(PropObject::handle).name, _objectHandle);
-    simulation->appendGenesisData(ev);
-    environment->appendGenesisData(ev);
-    customSceneData.appendEventData(nullptr, ev);
-    customSceneData_volatile.appendEventData(nullptr, ev);
-    dynamicsContainer->appendGenesisData(ev);
+        simulation->appendGenesisData(ev);
+        environment->appendGenesisData(ev);
+        customSceneData.appendEventData(nullptr, ev);
+        customSceneData_volatile.appendEventData(nullptr, ev);
+        dynamicsContainer->appendGenesisData(ev);
 
-    std::vector<int64_t> customObjectList;
-    customObjects->getAllObjectHandles(customObjectList);
-    ev->appendKeyHandleArray(prop(PropScene::customObjects).name, customObjectList.data(), customObjectList.size());
+        std::vector<int64_t> customObjectList;
+        customObjects->getAllObjectHandles(customObjectList);
+        ev->appendKeyHandleArray(prop(PropScene::customObjects).name, customObjectList.data(), customObjectList.size());
 
-    sceneObjects->appendNonObjectGenesisData(ev);
-    App::scenes->pushEvent();
+        sceneObjects->appendNonObjectGenesisData(ev);
+        App::scenes->pushEvent();
 
-    sceneObjects->pushObjectGenesisEvent_allObjects();
-    customObjects->pushGenesisEvents();
-    collections->pushGenesisEvents();
+        sceneObjects->pushObjectGenesisEvent_allObjects();
+        customObjects->pushGenesisEvents();
+        collections->pushGenesisEvents();
 
-    drawingCont->pushGenesisEvents();
-    pointCloudCont_old->pushGenesisEvents();
+        drawingCont->pushGenesisEvents();
+        pointCloudCont_old->pushGenesisEvents();
+    }
 }
 
 // Old:

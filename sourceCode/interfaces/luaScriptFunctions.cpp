@@ -12339,7 +12339,7 @@ int _simGetGenesisEvents(luaWrap_lua_State* L)
     // no args for now
 
     std::vector<unsigned char> genesisEvents;
-    App::scenes->getGenesisEvents(&genesisEvents, nullptr);
+    App::scenes->getGenesisEvents(&genesisEvents);
     luaWrap_lua_pushbuffer(L, (char*)genesisEvents.data(), genesisEvents.size());
     LUA_END(1);
 

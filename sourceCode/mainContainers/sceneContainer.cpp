@@ -39,7 +39,7 @@ CSceneContainer::CSceneContainer()
 #endif
     _currentSceneIndex = -1;
     App::scene = nullptr;
-    _eventsDisabledLevel = 0;
+    _eventsDisabledLevel = 1;
     _eventSeq = 0;
     //_eventMutex.setName("eventMutex");
 }
@@ -663,14 +663,17 @@ std::string CSceneContainer::getSessionId() const
     return _sessionId;
 }
 
-void CSceneContainer::getGenesisEvents(std::vector<unsigned char>* genesisEvents, CInterfaceStack* stack)
+void CSceneContainer::getGenesisEvents(std::vector<unsigned char>* genesisEvents)
 {
-    _eventMutex.lock("CSceneContainer::getGenesisEvents");
-    dispatchEvents(); // Dispatch events in the pipeline
-    App::pushGenesisEvents();
-    _events->finalizeEvents(_eventSeq, false);
-    _events->swapWithEmptyBuffer(genesisEvents);
-    _eventMutex.unlock();
+    if (getEventsEnabled())
+    {
+        _eventMutex.lock("CSceneContainer::getGenesisEvents");
+        dispatchEvents(); // Dispatch events in the pipeline
+        App::pushGenesisEvents();
+        _events->finalizeEvents(_eventSeq, false);
+        _events->swapWithEmptyBuffer(genesisEvents);
+        _eventMutex.unlock();
+    }
 }
 
 void CSceneContainer::dispatchEvents()

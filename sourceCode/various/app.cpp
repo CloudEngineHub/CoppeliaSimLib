@@ -368,6 +368,8 @@ void App::init(const char* appDir, int)
 #endif
     if (CSimFlavor::getBoolVal(19))
         App::postExitRequest();
+    scenes->enableEvents();
+    pushGenesisEvents();
 }
 
 void App::cleanup()

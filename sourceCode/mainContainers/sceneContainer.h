@@ -77,7 +77,7 @@ class CSceneContainer
     void pushEvent();
     CCbor* getEvents() const;
 
-    void getGenesisEvents(std::vector<unsigned char>* genesisEvents, CInterfaceStack* stack);
+    void getGenesisEvents(std::vector<unsigned char>* genesisEvents);
     void dispatchEvents();
 
     void instancePass();

@@ -478,18 +478,21 @@ CCollection* CCollectionContainer::getObjectFromName(const char* collectionName)
 
 void CCollectionContainer::pushGenesisEvents() const
 {
-    std::vector<int> addedCollections;
-    for (size_t i = 0; i < _allCollections.size(); i++)
+    if (App::scenes->getEventsEnabled())
     {
-        CCollection* coll = _allCollections[i];
-        coll->pushCreationEvent();
+        std::vector<int> addedCollections;
+        for (size_t i = 0; i < _allCollections.size(); i++)
+        {
+            CCollection* coll = _allCollections[i];
+            coll->pushCreationEvent();
 
-        // We need to "fake" adding that collection:
-        addedCollections.push_back(coll->getObjectHandle());
-        const char* cmd = prop(PropScene::collections).name;
-        CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
-        ev->appendKeyHandleArray(cmd, addedCollections.data(), addedCollections.size());
-        App::scenes->pushEvent();
+            // We need to "fake" adding that collection:
+            addedCollections.push_back(coll->getObjectHandle());
+            const char* cmd = prop(PropScene::collections).name;
+            CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, cmd, true);
+            ev->appendKeyHandleArray(cmd, addedCollections.data(), addedCollections.size());
+            App::scenes->pushEvent();
+        }
     }
 }
 

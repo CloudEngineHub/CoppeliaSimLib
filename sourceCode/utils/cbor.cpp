@@ -806,7 +806,6 @@ void CCbor::pushEvent()
     }
     else
     {
-        /*
         if (!inf->unknownObjects.empty())
         {
             std::string txt;
@@ -821,10 +820,20 @@ void CCbor::pushEvent()
                 txt += std::to_string(x);
                 cnt++;
             }
+            /*
+            txt += "\n Known objects: ";
+            cnt = 0;
+            for (int x : _createdObjects_events)
+            {
+                if (cnt != 0)
+                    txt += ", ";
+                txt += std::to_string(x);
+                cnt++;
+            }
+            */
             App::logMsg(sim_verbosity_errors, txt.c_str());
             App::logScriptMsg(nullptr, sim_verbosity_scripterrors, txt.c_str());
         }
-*/
     }
     /*
     if (!inf->unknownObjects.empty())

@@ -9419,7 +9419,7 @@ std::string _method_getGenesisEvents(int targetObj, CDetachedScript* currentScri
     if (checkInputArguments(inStack, &errMsg, {}))
     {
         std::vector<unsigned char> genesisEvents;
-        App::scenes->getGenesisEvents(&genesisEvents, nullptr);
+        App::scenes->getGenesisEvents(&genesisEvents);
         outStack->pushBufferOntoStack((char*)genesisEvents.data(), genesisEvents.size());
     }
     return errMsg;

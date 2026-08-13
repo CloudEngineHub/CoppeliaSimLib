@@ -1102,25 +1102,31 @@ int CDetachedScript::getScriptState() const
 
 void CDetachedScript::pushObjectCreationEvent()
 {
-    CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _scriptUid, nullptr, false);
-    Obj::addObjectEventData(ev);
-    ev->appendKeyBool(prop(PropDetachedScript::scriptEnabled).name, !_scriptIsDisabled);
-    ev->appendKeyText(prop(PropDetachedScript::scriptType).name, getScriptTypeStr().c_str());
-    ev->appendKeyInt64(prop(PropDetachedScript::scriptState).name, _scriptState);
-    ev->appendKeyBool(prop(PropDetachedScript::restartOnError).name, _autoRestartOnError);
-    ev->appendKeyInt64(prop(PropDetachedScript::execPriority).name, getScriptExecPriority());
-    ev->appendKeyText(prop(PropDetachedScript::language).name, _lang.c_str());
-    ev->appendKeyText(prop(PropDetachedScript::code).name, _scriptText.c_str());
-    ev->appendKeyText(prop(PropDetachedScript::scriptName).name, getScriptName().c_str());
-    ev->appendKeyText(prop(PropDetachedScript::addOnPath).name, _addOnPath.c_str());
-    ev->appendKeyText(prop(PropDetachedScript::addOnMenuPath).name, _addOnMenuPath.c_str());
-    App::scenes->pushEvent();
+    if (isNotInCopyBuffer() && App::scenes->getEventsEnabled())
+    {
+        CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _scriptUid, nullptr, false);
+        Obj::addObjectEventData(ev);
+        ev->appendKeyBool(prop(PropDetachedScript::scriptEnabled).name, !_scriptIsDisabled);
+        ev->appendKeyText(prop(PropDetachedScript::scriptType).name, getScriptTypeStr().c_str());
+        ev->appendKeyInt64(prop(PropDetachedScript::scriptState).name, _scriptState);
+        ev->appendKeyBool(prop(PropDetachedScript::restartOnError).name, _autoRestartOnError);
+        ev->appendKeyInt64(prop(PropDetachedScript::execPriority).name, getScriptExecPriority());
+        ev->appendKeyText(prop(PropDetachedScript::language).name, _lang.c_str());
+        ev->appendKeyText(prop(PropDetachedScript::code).name, _scriptText.c_str());
+        ev->appendKeyText(prop(PropDetachedScript::scriptName).name, getScriptName().c_str());
+        ev->appendKeyText(prop(PropDetachedScript::addOnPath).name, _addOnPath.c_str());
+        ev->appendKeyText(prop(PropDetachedScript::addOnMenuPath).name, _addOnMenuPath.c_str());
+        App::scenes->pushEvent();
+    }
 }
 
 void CDetachedScript::pushObjectRemoveEvent()
 {
-    App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED, _objectHandle, _scriptUid, nullptr, false);
-    App::scenes->pushEvent();
+    if (isNotInCopyBuffer() && App::scenes->getEventsEnabled())
+    {
+        App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED, _objectHandle, _scriptUid, nullptr, false);
+        App::scenes->pushEvent();
+    }
 }
 
 void CDetachedScript::setScriptState(int state)
@@ -1267,7 +1273,7 @@ bool CDetachedScript::getParentIsProxy() const
 
 bool CDetachedScript::isNotInCopyBuffer() const
 { // corresponds to the getIsInScene function with scene objects
-    bool retVal = ((_scriptType == sim_scripttype_sandbox) || (_scriptType == sim_scripttype_addon));
+    bool retVal = ((_scriptType == sim_scripttype_sandbox) || (_scriptType == sim_scripttype_addon) || (_scriptType == sim_scripttype_main));
     if (!retVal)
     {
         if (App::scene->sceneObjects != nullptr)

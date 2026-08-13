@@ -244,7 +244,6 @@ int CSceneObjectContainer::addObjectToSceneWithSuffixOffset(CSceneObject* newObj
     newObject->setObjectHandle(objectHandle);
     newObject->setObjectUniqueId();
 
-    //App::scenes->getEvents()->allowEventsReordering(true);
     _addObject(newObject);
 
     if (newObject->getObjectType() == sim_sceneobject_graph)
@@ -282,12 +281,9 @@ int CSceneObjectContainer::addObjectToSceneWithSuffixOffset(CSceneObject* newObj
     }
     App::scenes->setModificationFlag(2); // object created
     newObject->recomputeModelInfluencedValues();
-
     newObject->setIsInScene(true);
     App::scenes->enableEvents();
     pushObjectGenesisEvent_oneObject(newObject);
-//    newObject->pushObjectCreationEvent();
-//    App::scenes->getEvents()->allowEventsReordering(false);
     return objectHandle;
 }
 
@@ -401,11 +397,18 @@ bool CSceneObjectContainer::eraseObjects(const std::vector<int>* objectHandles, 
                         //    ((CScript*)it)->detachedScript->pushObjectRemoveEvent();
 
                         App::scenes->pushSceneObjectRemoveEvent(it);
+                        App::scenes->disableEvents();
+                        _removeObject(it);
+                        App::scenes->enableEvents();
+                        pushObjectGenesisEvent_oneObject(nullptr);
+                        /*
+                        App::scenes->pushSceneObjectRemoveEvent(it);
                         std::vector<unsigned char> data;
                         SEventInf eventInfo;
                         App::scenes->getEvents()->popEvent(data, eventInfo);
                         _removeObject(it);
                         App::scenes->getEvents()->pushEvent(data, eventInfo);
+                        */
                     }
                 }
 
@@ -734,9 +737,10 @@ void CSceneObjectContainer::pushObjectGenesisEvent_allObjects() const
 }
 
 void CSceneObjectContainer::pushObjectGenesisEvent_oneObject(CSceneObject* sceneObject) const
-{
+{ // sceneObject can be null, if we only want to update the object list, orphan list, etc. (e.g. after an object removal)
     std::vector<CSceneObject*> objs;
-    objs.push_back(sceneObject);
+    if (sceneObject != nullptr)
+        objs.push_back(sceneObject);
     pushObjectGenesisEvent_someObjects(objs);
 }
 
