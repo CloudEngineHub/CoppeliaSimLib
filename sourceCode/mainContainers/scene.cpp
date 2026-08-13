@@ -1262,7 +1262,7 @@ void CScene::pushGenesisEvents()
     sceneObjects->appendNonObjectGenesisData(ev);
     App::scenes->pushEvent();
 
-    sceneObjects->pushObjectGenesisEvents();
+    sceneObjects->pushObjectGenesisEvent_allObjects();
     customObjects->pushGenesisEvents();
     collections->pushGenesisEvents();
 
@@ -1909,8 +1909,8 @@ bool CScene::_loadModelOrScene(CSer& ar, bool selectLoaded, bool isScene, bool j
     // Enable scripts (we previously didn't want to have them react to object add event, etc., during the load operation)
     sceneObjects->setScriptsTemporarilySuspended(false);
     App::scenes->enableEvents();
-
-    sceneObjects->sendSpecificCreationEvents(&newObjects, isScene);
+    if (!isScene)
+        sceneObjects->pushObjectGenesisEvent_someObjects(newObjects); // scene load gets the genesis event anyways
     return true;
 }
 

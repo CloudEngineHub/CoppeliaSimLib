@@ -640,7 +640,7 @@ CCbor* CSceneContainer::_createGeneralEvent(const char* event, int64_t objectHan
         _events->createEvent(event, fieldName, objType, objectHandle, uid, mergeable, openDataField);
         retVal = _events;
     }
-    return (retVal);
+    return retVal;
 }
 
 void CSceneContainer::disableEvents()

@@ -806,6 +806,7 @@ void CCbor::pushEvent()
     }
     else
     {
+        /*
         if (!inf->unknownObjects.empty())
         {
             std::string txt;
@@ -823,6 +824,7 @@ void CCbor::pushEvent()
             App::logMsg(sim_verbosity_errors, txt.c_str());
             App::logScriptMsg(nullptr, sim_verbosity_scripterrors, txt.c_str());
         }
+*/
     }
     /*
     if (!inf->unknownObjects.empty())

@@ -3204,10 +3204,16 @@ int CMesh::getIntArray2Property_mesh(const char* ppName, int* pState, const CPos
     const char* pName = ppName;
     int retVal = sim_propertyret_unknownproperty;
 
-    if ((strcmp(pName, prop(PropMesh::textureResolution).name) == 0) && (_textureProperty != nullptr))
+    if (strcmp(pName, prop(PropMesh::textureResolution).name) == 0)
     {
         retVal = sim_propertyret_ok;
-        _textureProperty->getTextureObject()->getTextureSize(pState[0], pState[1]);
+        if (_textureProperty != nullptr)
+            _textureProperty->getTextureObject()->getTextureSize(pState[0], pState[1]);
+        else
+        {
+            pState[0] = 0;
+            pState[1] = 0;
+        }
     }
 
     return retVal;
@@ -3326,13 +3332,18 @@ int CMesh::getFloatArrayProperty_mesh(const char* ppName, std::vector<double>& p
     int retVal = sim_propertyret_unknownproperty;
     pState.clear();
 
-    if ((strcmp(pName, prop(PropMesh::textureCoordinates).name) == 0) && (_textureProperty != nullptr))
+    if (strcmp(pName, prop(PropMesh::textureCoordinates).name) == 0)
     {
         retVal = sim_propertyret_ok;
-        const std::vector<float>* tc = _textureProperty->getTextureCoordinates(-1, _verticesForDisplayAndDisk, _indices);
-        pState.resize(tc->size());
-        for (size_t i = 0; i < tc->size(); i++)
-            pState[i] = (double)tc->at(i);
+        if (_textureProperty != nullptr)
+        {
+            const std::vector<float>* tc = _textureProperty->getTextureCoordinates(-1, _verticesForDisplayAndDisk, _indices);
+            pState.resize(tc->size());
+            for (size_t i = 0; i < tc->size(); i++)
+                pState[i] = (double)tc->at(i);
+        }
+        else
+            pState.clear();
     }
 
     return retVal;

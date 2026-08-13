@@ -155,6 +155,7 @@ int CSceneObjectContainer::addObjectToScene(CSceneObject* newObject, bool object
 int CSceneObjectContainer::addObjectToSceneWithSuffixOffset(CSceneObject* newObject, bool objectIsACopy,
                                                             int suffixOffset, bool generateAfterCreateCallback)
 {
+    App::scenes->disableEvents();
     App::scene->environment->setSceneCanBeDiscardedWhenNewSceneOpened(false); // 4/3/2012
 
     std::string newObjName = newObject->getObjectName_old();
@@ -243,7 +244,7 @@ int CSceneObjectContainer::addObjectToSceneWithSuffixOffset(CSceneObject* newObj
     newObject->setObjectHandle(objectHandle);
     newObject->setObjectUniqueId();
 
-    App::scenes->getEvents()->allowEventsReordering(true);
+    //App::scenes->getEvents()->allowEventsReordering(true);
     _addObject(newObject);
 
     if (newObject->getObjectType() == sim_sceneobject_graph)
@@ -283,9 +284,11 @@ int CSceneObjectContainer::addObjectToSceneWithSuffixOffset(CSceneObject* newObj
     newObject->recomputeModelInfluencedValues();
 
     newObject->setIsInScene(true);
-    newObject->pushObjectCreationEvent();
-    App::scenes->getEvents()->allowEventsReordering(false);
-    return (objectHandle);
+    App::scenes->enableEvents();
+    pushObjectGenesisEvent_oneObject(newObject);
+//    newObject->pushObjectCreationEvent();
+//    App::scenes->getEvents()->allowEventsReordering(false);
+    return objectHandle;
 }
 
 void CSceneObjectContainer::eraseObject(CSceneObject* it, bool generateBeforeAfterDeleteCallback, bool delayed /*= false*/)
@@ -725,34 +728,30 @@ void CSceneObjectContainer::checkObjectIsInstanciated(CSceneObject* obj, const c
     }
 }
 
-void CSceneObjectContainer::pushObjectGenesisEvents() const
+void CSceneObjectContainer::pushObjectGenesisEvent_allObjects() const
 {
-    sendSpecificCreationEvents(&_allObjects, false);
+    pushObjectGenesisEvent_someObjects(_allObjects);
 }
 
-void CSceneObjectContainer::sendSpecificCreationEvents(const std::vector<CSceneObject*>* sceneObjects, bool mainScript) const
+void CSceneObjectContainer::pushObjectGenesisEvent_oneObject(CSceneObject* sceneObject) const
 {
-    if (mainScript)
+    std::vector<CSceneObject*> objs;
+    objs.push_back(sceneObject);
+    pushObjectGenesisEvent_someObjects(objs);
+}
+
+void CSceneObjectContainer::pushObjectGenesisEvent_someObjects(const std::vector<CSceneObject*>& sceneObjects) const
+{
+    if (App::scenes->getEventsEnabled())
     {
-        embeddedScriptContainer->pushMainScriptGenesisEvent(); // first
-        CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
-        CDetachedScript* it = App::scene->sceneObjects->embeddedScriptContainer->getMainScript();
-        int msh = -1;
-        if (it != nullptr)
-            msh = it->getSceneObjectOrDetachedScriptHandle();
-        ev->appendKeyHandle(prop(PropScene::mainScript).name, msh);
-        App::scenes->pushEvent();
-    }
-    if (sceneObjects != nullptr)
-    {
-        for (size_t i = 0; i < sceneObjects->size(); i++)
+        for (size_t i = 0; i < sceneObjects.size(); i++)
         {
-            CSceneObject* obj = sceneObjects->at(i);
+            CSceneObject* obj = sceneObjects[i];
             obj->pushObjectCreationEvent(true);
         }
-        for (size_t i = 0; i < sceneObjects->size(); i++)
+        for (size_t i = 0; i < sceneObjects.size(); i++)
         {
-            CSceneObject* obj = sceneObjects->at(i);
+            CSceneObject* obj = sceneObjects[i];
             const std::vector<CSceneObject*>* children = obj->getChildren();
             CSceneObject* parent = obj->getParent();
             CCbor* ev = App::scenes->createSceneObjectChangedEvent(obj->getObjectHandle(), true, prop(PropSceneObject::parent).name, false);
