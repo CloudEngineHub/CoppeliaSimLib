@@ -58,7 +58,9 @@ class CSceneObject : public Obj
     virtual void connect_oldIk();
     virtual void remove_oldIk();
 
-    virtual void addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless = false) override;
+    virtual void pushNakedGenesisEvents(CCbor* ev = nullptr) override;
+    virtual void pushDependencyDataEvents(CCbor* ev = nullptr) const override;
+
     virtual CSceneObject* copyYourself();
     virtual void removeSceneDependencies();
     virtual void scaleObject(double scalingFactor);
@@ -365,7 +367,6 @@ class CSceneObject : public Obj
 
     void setIgnorePosAndCameraOrthoviewSize_forUndoRedo(bool s);
 
-    void pushObjectCreationEvent(bool sendAsChildlessOrphanMeshlessDetachedscriptless = false);
     void pushObjectRefreshEvent();
     CPose getBB(C3Vector* bbHalfSize) const;
     C3Vector getBBHSize() const;

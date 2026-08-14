@@ -652,21 +652,29 @@ void CMarker::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CMarker::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CMarker::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    ev->appendKeyText(prop(PropMarker::type).name, getMarkerTypeStr().c_str());
-    ev->appendKeyBool(prop(PropMarker::cyclic).name, _itemOptions & sim_markeropts_cyclic);
-    ev->appendKeyBool(prop(PropMarker::local).name, _itemOptions & sim_markeropts_local);
-    ev->appendKeyBool(prop(PropMarker::overlay).name, _itemOptions & sim_markeropts_overlay);
-    ev->appendKeyVector3(prop(PropMarker::defaultItemSize).name, _itemSize);
-    if (_itemType == sim_markertype_custom)
+    if (_isInScene && App::scenes->getEventsEnabled())
     {
-        ev->appendKeyMatrix(prop(PropMarker::vertices).name, _vertices.data(), 3, _vertices.size() / 3, false);
-        ev->appendKeyInt32Array(prop(PropMarker::indices).name, _indices.data(), _indices.size());
-        ev->appendKeyMatrix(prop(PropMarker::normals).name, _normals.data(), 3, _normals.size() / 3, false);
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        ev->appendKeyText(prop(PropMarker::type).name, getMarkerTypeStr().c_str());
+        ev->appendKeyBool(prop(PropMarker::cyclic).name, _itemOptions & sim_markeropts_cyclic);
+        ev->appendKeyBool(prop(PropMarker::local).name, _itemOptions & sim_markeropts_local);
+        ev->appendKeyBool(prop(PropMarker::overlay).name, _itemOptions & sim_markeropts_overlay);
+        ev->appendKeyVector3(prop(PropMarker::defaultItemSize).name, _itemSize);
+        if (_itemType == sim_markertype_custom)
+        {
+            ev->appendKeyMatrix(prop(PropMarker::vertices).name, _vertices.data(), 3, _vertices.size() / 3, false);
+            ev->appendKeyInt32Array(prop(PropMarker::indices).name, _indices.data(), _indices.size());
+            ev->appendKeyMatrix(prop(PropMarker::normals).name, _normals.data(), 3, _normals.size() / 3, false);
+        }
+        _updateMarkerEvent(false, ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
     }
-    _updateMarkerEvent(false, ev);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 CSceneObject* CMarker::copyYourself()

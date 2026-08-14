@@ -608,15 +608,23 @@ void CGraph::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CGraph::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CGraph::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    color.addGenesisEventData(ev);
-    ev->appendKeyInt64(prop(PropGraph::bufferSize).name, bufferSize);
-    ev->appendKeyBool(prop(PropGraph::cyclic).name, cyclic);
-    ev->appendKeyDouble(prop(PropGraph::size).name, _graphSize);
-    ev->appendKeyColor3(prop(PropGraph::backgroundColor).name, backgroundColor);
-    ev->appendKeyColor3(prop(PropGraph::foregroundColor).name, foregroundColor);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        color.addGenesisEventData(ev);
+        ev->appendKeyInt64(prop(PropGraph::bufferSize).name, bufferSize);
+        ev->appendKeyBool(prop(PropGraph::cyclic).name, cyclic);
+        ev->appendKeyDouble(prop(PropGraph::size).name, _graphSize);
+        ev->appendKeyColor3(prop(PropGraph::backgroundColor).name, backgroundColor);
+        ev->appendKeyColor3(prop(PropGraph::foregroundColor).name, foregroundColor);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CGraph::copyYourself()

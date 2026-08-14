@@ -175,10 +175,18 @@ void CMirror::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CMirror::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CMirror::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    clipPlaneColor.addGenesisEventData(ev);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        clipPlaneColor.addGenesisEventData(ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CMirror::copyYourself()

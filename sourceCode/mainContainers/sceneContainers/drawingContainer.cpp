@@ -78,12 +78,7 @@ void CDrawingContainer::removeObject(int objectId)
     {
         if (_allObjects[i]->getObjectHandle() == objectId)
         {
-            if (App::scenes->getEventsEnabled())
-            {
-                App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED,  _allObjects[i]->getObjectHandle(), _allObjects[i]->getObjectHandle(), nullptr, false);
-                App::scenes->pushEvent();
-            }
-
+            App::scenes->pushRemoveEvent(_allObjects[i]->getObjectHandle());
             delete _allObjects[i];
             _allObjects.erase(_allObjects.begin() + i);
 

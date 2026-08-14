@@ -20,7 +20,7 @@ void CustomObjectContainer::init()
 void CustomObjectContainer::pushGenesisEvents() const
 {
     for (auto it = _customObjects.begin(); it != _customObjects.end(); ++it)
-        it->second->pushObjectCreationEvent();
+        it->second->pushNakedGenesisEvents();
 }
 
 void CustomObjectContainer::serialize(CSer& ar)
@@ -269,7 +269,7 @@ int64_t CustomObjectContainer::makeObject(const CustomObject* classObject, bool 
     CustomObject* obj = classObject->createObject(retVal, originDetachedScriptHandle);
     obj->setVolatile(isVolatile);
     _customObjects.insert({retVal, obj});
-    obj->pushObjectCreationEvent();
+    obj->pushNakedGenesisEvents();
     _notifyObjectListChanged();
     return retVal;
 }

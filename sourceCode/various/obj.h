@@ -75,7 +75,8 @@ class Obj
     Obj(int64_t objectHandle, const char* objectTypeStr, const char* metaInfo);
     virtual ~Obj();
 
-    virtual void addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless = false);
+    virtual void pushNakedGenesisEvents(CCbor* ev = nullptr);
+    virtual void pushDependencyDataEvents(CCbor* ev = nullptr) const;
 
     void copyYourselfInto(Obj* it) const;
     int64_t getObjectHandle() const;

@@ -14,7 +14,6 @@
 #include <customData.h>
 #include <customObjectContainer.h>
 #include <customSceneObjectClassContainer.h>
-#include <tuple>
 
 #ifdef SIM_WITH_GUI
 #include <globalGuiTextureContainer.h>
@@ -62,7 +61,6 @@ class CSceneContainer
     int getSysFuncAndHookCnt(int sysCall) const;
 
     bool shouldTemporarilySuspendMainScript();
-    void pushSceneObjectRemoveEvent(const CSceneObject* object);
 
     void disableEvents();
     void enableEvents();
@@ -75,6 +73,7 @@ class CSceneContainer
     CCbor* createSceneObjectChangedEvent(int64_t sceneObjectHandle, bool isCommonObjectData, const char* fieldName, bool mergeable);
     CCbor* createObjectChangedEvent(int64_t objectHandle, const char* fieldName, bool mergeable);
     void pushEvent();
+    void pushRemoveEvent(int64_t objectHandle, int64_t uid = -1);
     CCbor* getEvents() const;
 
     void getGenesisEvents(std::vector<unsigned char>* genesisEvents);

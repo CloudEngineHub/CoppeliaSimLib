@@ -37,8 +37,7 @@ class CDetachedScript : public Obj
 
     static void destroy(CDetachedScript* obj, bool registeredObject, bool announceScriptDestruction = true);
 
-    void pushObjectCreationEvent();
-    void pushObjectRemoveEvent();
+    void pushNakedGenesisEvents(CCbor* ev = nullptr) override;
     int setHandle();
     void initializeInitialValues(bool simulationAlreadyRunning);
     void simulationAboutToStart();

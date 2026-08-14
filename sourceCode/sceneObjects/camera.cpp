@@ -937,15 +937,34 @@ void CCamera::removeSceneDependencies()
     setTrackedObjectHandle(-1);
 }
 
-void CCamera::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CCamera::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    _color.addGenesisEventData(ev);
-    ev->appendKeyDouble(prop(PropCamera::size).name, _cameraSize);
-    ev->appendKeyHandle(prop(PropCamera::trackedObject).name, _trackedObjectHandle);
-    ev->appendKeyBool(prop(PropCamera::parentAsManipProxy).name, _useParentObjectAsManipulationProxy);
-    ev->appendKeyBool(prop(PropCamera::translationEnabled).name, _allowTranslation);
-    ev->appendKeyBool(prop(PropCamera::rotationEnabled).name, _allowRotation);
-    CViewableBase::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        _color.addGenesisEventData(ev);
+        ev->appendKeyDouble(prop(PropCamera::size).name, _cameraSize);
+        ev->appendKeyHandle(prop(PropCamera::trackedObject).name, -1); // because 'naked'
+        ev->appendKeyBool(prop(PropCamera::parentAsManipProxy).name, _useParentObjectAsManipulationProxy);
+        ev->appendKeyBool(prop(PropCamera::translationEnabled).name, _allowTranslation);
+        ev->appendKeyBool(prop(PropCamera::rotationEnabled).name, _allowRotation);
+        CViewableBase::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
+}
+
+void CCamera::pushDependencyDataEvents(CCbor* ev /*= nullptr*/) const
+{
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        CCbor* ev = App::scenes->createSceneObjectChangedEvent(_objectHandle, false, prop(PropCamera::trackedObject).name, false);
+        CSceneObject::pushDependencyDataEvents(ev);
+        ev->appendKeyHandle(prop(PropCamera::trackedObject).name, _trackedObjectHandle);
+        App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CCamera::copyYourself()

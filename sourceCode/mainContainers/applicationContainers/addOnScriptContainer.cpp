@@ -374,12 +374,12 @@ void CAddOnScriptContainer::removeAllAddOns()
     }
 }
 
-void CAddOnScriptContainer::pushGenesisEvents() const
+void CAddOnScriptContainer::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
     for (size_t i = 0; i < _addOns.size(); i++)
     {
         CDetachedScript* it = _addOns[i];
-        it->pushObjectCreationEvent();
+        it->pushNakedGenesisEvents();
     }
 }
 

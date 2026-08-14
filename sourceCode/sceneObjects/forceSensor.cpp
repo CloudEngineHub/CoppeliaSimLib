@@ -626,23 +626,31 @@ void CForceSensor::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CForceSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CForceSensor::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    _color.addGenesisEventData(ev);
-    ev->appendKeyDouble(prop(PropForceSensor::size).name, _forceSensorSize);
-    ev->appendKeyPose(prop(PropForceSensor::intrinsicError).name, _intrinsicTransformationError);
-    ev->appendKeyVector3(prop(PropForceSensor::sensorForce).name, _lastForce_dynStep);
-    ev->appendKeyVector3(prop(PropForceSensor::sensorTorque).name, _lastTorque_dynStep);
-    ev->appendKeyVector3(prop(PropForceSensor::filteredSensorForce).name, _filteredDynamicForces);
-    ev->appendKeyVector3(prop(PropForceSensor::filteredSensorTorque).name, _filteredDynamicTorques);
-    ev->appendKeyInt64(prop(PropForceSensor::filterType).name, _filterType);
-    ev->appendKeyBool(prop(PropForceSensor::forceThresholdEnabled).name, _forceThresholdEnabled);
-    ev->appendKeyBool(prop(PropForceSensor::torqueThresholdEnabled).name, _torqueThresholdEnabled);
-    ev->appendKeyInt64(prop(PropForceSensor::filterSampleSize).name, _filterSampleSize);
-    ev->appendKeyInt64(prop(PropForceSensor::consecutiveViolationsToTrigger).name, _consecutiveViolationsToTrigger);
-    ev->appendKeyDouble(prop(PropForceSensor::forceThreshold).name, _forceThreshold);
-    ev->appendKeyDouble(prop(PropForceSensor::torqueThreshold).name, _torqueThreshold);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        _color.addGenesisEventData(ev);
+        ev->appendKeyDouble(prop(PropForceSensor::size).name, _forceSensorSize);
+        ev->appendKeyPose(prop(PropForceSensor::intrinsicError).name, _intrinsicTransformationError);
+        ev->appendKeyVector3(prop(PropForceSensor::sensorForce).name, _lastForce_dynStep);
+        ev->appendKeyVector3(prop(PropForceSensor::sensorTorque).name, _lastTorque_dynStep);
+        ev->appendKeyVector3(prop(PropForceSensor::filteredSensorForce).name, _filteredDynamicForces);
+        ev->appendKeyVector3(prop(PropForceSensor::filteredSensorTorque).name, _filteredDynamicTorques);
+        ev->appendKeyInt64(prop(PropForceSensor::filterType).name, _filterType);
+        ev->appendKeyBool(prop(PropForceSensor::forceThresholdEnabled).name, _forceThresholdEnabled);
+        ev->appendKeyBool(prop(PropForceSensor::torqueThresholdEnabled).name, _torqueThresholdEnabled);
+        ev->appendKeyInt64(prop(PropForceSensor::filterSampleSize).name, _filterSampleSize);
+        ev->appendKeyInt64(prop(PropForceSensor::consecutiveViolationsToTrigger).name, _consecutiveViolationsToTrigger);
+        ev->appendKeyDouble(prop(PropForceSensor::forceThreshold).name, _forceThreshold);
+        ev->appendKeyDouble(prop(PropForceSensor::torqueThreshold).name, _torqueThreshold);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CForceSensor::copyYourself()

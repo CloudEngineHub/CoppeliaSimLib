@@ -759,14 +759,22 @@ void COcTree::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void COcTree::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void COcTree::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    color.addGenesisEventData(ev);
-    ev->appendKeyDouble(prop(PropOctree::voxelSize).name, _cellSize);
-    ev->appendKeyBool(prop(PropOctree::randomColors).name, _useRandomColors);
-    ev->appendKeyBool(prop(PropOctree::showPoints).name, _usePointsInsteadOfCubes);
-    _updateOctreeEvent(false, ev);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        color.addGenesisEventData(ev);
+        ev->appendKeyDouble(prop(PropOctree::voxelSize).name, _cellSize);
+        ev->appendKeyBool(prop(PropOctree::randomColors).name, _useRandomColors);
+        ev->appendKeyBool(prop(PropOctree::showPoints).name, _usePointsInsteadOfCubes);
+        _updateOctreeEvent(false, ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* COcTree::copyYourself()

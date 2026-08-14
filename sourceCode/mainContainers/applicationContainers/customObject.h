@@ -13,7 +13,7 @@ class CustomObject: public Obj
 
     CustomObject* createObject(int64_t handle, int originDetachedScriptHandle) const;
 
-    void pushObjectCreationEvent();
+    void pushNakedGenesisEvents(CCbor* ev = nullptr) override;
     void serialize(CSer& ar);
 
     int setBoolProperty(const char* pName, bool pState) override;

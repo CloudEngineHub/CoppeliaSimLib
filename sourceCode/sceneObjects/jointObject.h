@@ -166,7 +166,9 @@ class CJoint : public CSceneObject
     void connect_oldIk() override;
 
     // Following functions are inherited from CSceneObject
-    void addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless = false) override;
+    void pushNakedGenesisEvents(CCbor* ev = nullptr) override;
+    void pushDependencyDataEvents(CCbor* ev = nullptr) const override;
+
     CSceneObject* copyYourself() override;
     void removeSceneDependencies() override;
     void scaleObject(double scalingFactor) override;

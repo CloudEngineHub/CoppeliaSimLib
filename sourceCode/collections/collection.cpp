@@ -650,7 +650,7 @@ void CCollection::pushCreationEvent()
     if (App::scenes->getEventsEnabled())
     {
         CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _objectHandle, nullptr, false);
-        Obj::addObjectEventData(ev);
+        Obj::pushNakedGenesisEvents(ev);
         ev->appendKeyHandleArray(prop(PropCollection::objects).name, _collectionObjects.data(), _collectionObjects.size());
         ev->appendKeyInt64(prop(PropObject::handle).name, _objectHandle);
         App::scenes->pushEvent();

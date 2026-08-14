@@ -586,18 +586,26 @@ void CViewableBase::getVolumeVectors(C3Vector& n, C3Vector& f) const
     f = _volumeVectorFar;
 }
 
-void CViewableBase::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CViewableBase::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    ev->appendKeyDouble(prop(PropCamera::viewAngle).name, _viewAngle);
-    ev->appendKeyDouble(prop(PropCamera::viewSize).name, _orthoViewSize);
-    double arr[2] = {_nearClippingPlane, _farClippingPlane};
-    ev->appendKeyDoubleArray(prop(PropCamera::clippingPlanes).name, arr, 2);
-    ev->appendKeyBool(prop(PropCamera::perspective).name, _perspective);
-    ev->appendKeyBool(prop(PropCamera::showFrustum).name, _showVolume);
-    ev->appendKeyVector3(prop(PropCamera::frustumCornerNear).name, _volumeVectorNear);
-    ev->appendKeyVector3(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar);
-    ev->appendKeyInt32Array(prop(PropCamera::resolution).name, _resolution, 2);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        ev->appendKeyDouble(prop(PropCamera::viewAngle).name, _viewAngle);
+        ev->appendKeyDouble(prop(PropCamera::viewSize).name, _orthoViewSize);
+        double arr[2] = {_nearClippingPlane, _farClippingPlane};
+        ev->appendKeyDoubleArray(prop(PropCamera::clippingPlanes).name, arr, 2);
+        ev->appendKeyBool(prop(PropCamera::perspective).name, _perspective);
+        ev->appendKeyBool(prop(PropCamera::showFrustum).name, _showVolume);
+        ev->appendKeyVector3(prop(PropCamera::frustumCornerNear).name, _volumeVectorNear);
+        ev->appendKeyVector3(prop(PropCamera::frustumCornerFar).name, _volumeVectorFar);
+        ev->appendKeyInt32Array(prop(PropCamera::resolution).name, _resolution, 2);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 int CViewableBase::setBoolProperty(const char* pName, bool pState)

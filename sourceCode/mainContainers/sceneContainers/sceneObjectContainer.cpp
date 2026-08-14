@@ -283,7 +283,7 @@ int CSceneObjectContainer::addObjectToSceneWithSuffixOffset(CSceneObject* newObj
     newObject->recomputeModelInfluencedValues();
     newObject->setIsInScene(true);
     App::scenes->enableEvents();
-    pushObjectGenesisEvent_oneObject(newObject);
+    pushGenesisEvents_oneObject(newObject);
     return objectHandle;
 }
 
@@ -389,26 +389,18 @@ bool CSceneObjectContainer::eraseObjects(const std::vector<int>* objectHandles, 
                             std::vector<CMesh*> all;
                             ((CShape*)it)->getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, nullptr);
                             for (size_t j = 0; j < all.size(); j++)
-                                all[j]->pushObjectRemoveEvent();
+                                App::scenes->pushRemoveEvent(all[j]->getObjectHandle());
                         }
 
                         // Following happens in script->canDestroyNow():
                         //if ((it->getObjectType() == sim_sceneobject_script) && (((CScript*)it)->detachedScript != nullptr))
-                        //    ((CScript*)it)->detachedScript->pushObjectRemoveEvent();
+                        //    App::scenes->pushRemoveEvent((CScript*)it)->detachedScript->...;
 
-                        App::scenes->pushSceneObjectRemoveEvent(it);
+                        App::scenes->pushRemoveEvent(it->getObjectHandle());
                         App::scenes->disableEvents();
                         _removeObject(it);
                         App::scenes->enableEvents();
-                        pushObjectGenesisEvent_oneObject(nullptr);
-                        /*
-                        App::scenes->pushSceneObjectRemoveEvent(it);
-                        std::vector<unsigned char> data;
-                        SEventInf eventInfo;
-                        App::scenes->getEvents()->popEvent(data, eventInfo);
-                        _removeObject(it);
-                        App::scenes->getEvents()->pushEvent(data, eventInfo);
-                        */
+                        pushGenesisEvents_oneObject(nullptr); // just to trigger a fresh objects, orphans, etc. properties event
                     }
                 }
 
@@ -731,40 +723,32 @@ void CSceneObjectContainer::checkObjectIsInstanciated(CSceneObject* obj, const c
     }
 }
 
-void CSceneObjectContainer::pushObjectGenesisEvent_allObjects() const
+void CSceneObjectContainer::pushGenesisEvents_allObjects() const
 {
-    pushObjectGenesisEvent_someObjects(_allObjects);
+    pushGenesisEvents_someObjects(_allObjects);
 }
 
-void CSceneObjectContainer::pushObjectGenesisEvent_oneObject(CSceneObject* sceneObject) const
+void CSceneObjectContainer::pushGenesisEvents_oneObject(CSceneObject* sceneObject) const
 { // sceneObject can be null, if we only want to update the object list, orphan list, etc. (e.g. after an object removal)
     std::vector<CSceneObject*> objs;
     if (sceneObject != nullptr)
         objs.push_back(sceneObject);
-    pushObjectGenesisEvent_someObjects(objs);
+    pushGenesisEvents_someObjects(objs);
 }
 
-void CSceneObjectContainer::pushObjectGenesisEvent_someObjects(const std::vector<CSceneObject*>& sceneObjects) const
+void CSceneObjectContainer::pushGenesisEvents_someObjects(const std::vector<CSceneObject*>& sceneObjects) const
 {
     if (App::scenes->getEventsEnabled())
     {
         for (size_t i = 0; i < sceneObjects.size(); i++)
         {
             CSceneObject* obj = sceneObjects[i];
-            obj->pushObjectCreationEvent(true);
+            obj->pushNakedGenesisEvents();
         }
         for (size_t i = 0; i < sceneObjects.size(); i++)
         {
             CSceneObject* obj = sceneObjects[i];
-            const std::vector<CSceneObject*>* children = obj->getChildren();
-            CSceneObject* parent = obj->getParent();
-            CCbor* ev = App::scenes->createSceneObjectChangedEvent(obj->getObjectHandle(), true, prop(PropSceneObject::parent).name, false);
-            int pH = -1;
-            if (parent != nullptr)
-                pH = parent->getObjectHandle();
-            ev->appendKeyHandle(prop(PropSceneObject::parent).name, pH);
-            ev->appendKeyHandleArray(prop(PropSceneObject::children).name, children[0]);
-            App::scenes->pushEvent();
+            obj->pushDependencyDataEvents();
         }
 
         CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, prop(PropScene::objects).name, false);

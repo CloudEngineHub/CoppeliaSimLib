@@ -1445,155 +1445,136 @@ void CSceneObject::removeSceneDependencies()
     _customReferencedOriginalHandles.clear();
 }
 
-void CSceneObject::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
-{
-    ev->appendKeyInt64(prop(PropSceneObject::layer).name, _visibilityLayer);
-    ev->appendKeyInt64(prop(PropSceneObject::childOrder).name, _childOrder);
-    std::vector<int> ch;
-    for (size_t i = 0; i < _childList.size(); i++)
-        ch.push_back(_childList[i]->getObjectHandle());
-    if (sendAsChildlessOrphanMeshlessDetachedscriptless)
-        ev->appendKeyHandleArray(prop(PropSceneObject::children).name, (int*)nullptr, 0);
-    else
-        ev->appendKeyHandleArray(prop(PropSceneObject::children).name, ch.data(), ch.size());
-    ev->appendKeyVector3(prop(PropSceneObject::position).name, _localTransformation.X);
-    ev->appendKeyPose(prop(PropSceneObject::pose).name, _localTransformation);
-    ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, _localTransformation.Q);
-    ev->appendKeyText(prop(PropSceneObject::name).name, _objectAlias.c_str());
-    ev->appendKeyBool(prop(PropSceneObject::modelInvisible).name, _modelInvisible);
-    ev->appendKeyBool(prop(PropSceneObject::modelBase).name, _modelBase);
-
-    ev->appendKeyInt64(prop(PropSceneObject::objectProperty).name, _objectProperty);
-    ev->appendKeyBool(prop(PropSceneObject::ignoreViewFitting).name, _objectProperty & sim_objectproperty_ignoreviewfitting);
-    ev->appendKeyBool(prop(PropSceneObject::collapsed).name, _objectProperty & sim_objectproperty_collapsed);
-    ev->appendKeyBool(prop(PropSceneObject::selectable).name, _objectProperty & sim_objectproperty_selectable);
-    ev->appendKeyBool(prop(PropSceneObject::selectModel).name, _objectProperty & sim_objectproperty_selectmodelbaseinstead);
-    ev->appendKeyBool(prop(PropSceneObject::hideFromModelBB).name, _objectProperty & sim_objectproperty_dontshowasinsidemodel);
-    ev->appendKeyBool(prop(PropSceneObject::selectInvisible).name, _objectProperty & sim_objectproperty_selectinvisible);
-    ev->appendKeyBool(prop(PropSceneObject::depthInvisible).name, _objectProperty & sim_objectproperty_depthinvisible);
-    ev->appendKeyBool(prop(PropSceneObject::cannotDelete).name, _objectProperty & sim_objectproperty_cannotdelete);
-    ev->appendKeyBool(prop(PropSceneObject::cannotDeleteSim).name, _objectProperty & sim_objectproperty_cannotdeleteduringsim);
-
-    ev->appendKeyInt64(prop(PropSceneObject::modelProperty).name, _modelProperty);
-    ev->appendKeyBool(prop(PropSceneObject::modelNotCollidable).name, _modelProperty & sim_modelproperty_not_collidable);
-    ev->appendKeyBool(prop(PropSceneObject::modelNotMeasurable).name, _modelProperty & sim_modelproperty_not_measurable);
-    ev->appendKeyBool(prop(PropSceneObject::modelNotDetectable).name, _modelProperty & sim_modelproperty_not_detectable);
-    ev->appendKeyBool(prop(PropSceneObject::modelNotDynamic).name, _modelProperty & sim_modelproperty_not_dynamic);
-    ev->appendKeyBool(prop(PropSceneObject::modelNotRespondable).name, _modelProperty & sim_modelproperty_not_respondable);
-    ev->appendKeyBool(prop(PropSceneObject::modelNotVisible).name, _modelProperty & sim_modelproperty_not_visible);
-    ev->appendKeyBool(prop(PropSceneObject::modelScriptsNotActive).name, _modelProperty & sim_modelproperty_scripts_inactive);
-    ev->appendKeyBool(prop(PropSceneObject::modelNotInParentBB).name, _modelProperty & sim_modelproperty_not_showasinsidemodel);
-
-    int64_t pUid = -1;
-    int pH = -1;
-    if ((_parentObject != nullptr) && (!sendAsChildlessOrphanMeshlessDetachedscriptless))
-    {
-        pUid = _parentObject->getObjectUid();
-        pH = _parentObject->getObjectHandle();
-    }
-    ev->appendKeyInt64(prop(PropSceneObject::parentUid).name, pUid);
-    ev->appendKeyInt64(prop(PropSceneObject::DEPRECATED_parentHandle).name, pH); // for backw. compatibility
-    ev->appendKeyHandle(prop(PropSceneObject::parent).name, pH);
-    ev->appendKeyBool(prop(PropSceneObject::selected).name, _selected);
-    ev->appendKeyInt64(prop(PropSceneObject::hierarchyColor).name, _hierarchyColorIndex);
-    ev->appendKeyInt64(prop(PropSceneObject::collectionSelfCollInd).name, _collectionSelfCollisionIndicator);
-    ev->appendKeyBool(prop(PropSceneObject::collidable).name, _localObjectSpecialProperty & sim_objectspecialproperty_collidable);
-    ev->appendKeyBool(prop(PropSceneObject::measurable).name, _localObjectSpecialProperty & sim_objectspecialproperty_measurable);
-    ev->appendKeyBool(prop(PropSceneObject::detectable).name, _localObjectSpecialProperty & sim_objectspecialproperty_detectable);
-    ev->appendKeyText(prop(PropSceneObject::modelAcknowledgment).name, _modelAcknowledgement.c_str());
-    ev->appendKeyBuff(prop(PropSceneObject::dna).name, (unsigned char*)_dnaString.data(), _dnaString.size());
-    ev->appendKeyText(prop(PropSceneObject::persistentUid).name, _uniquePersistentIdString.c_str());
-    ev->appendKeyVector3(prop(PropSceneObject::calcLinearVelocity).name, _measuredLinearVelocity_velocityMeasurement);
-    ev->appendKeyVector3(prop(PropSceneObject::calcAngularVelocity).name, _measuredAngularVelocityAxis_velocityMeasurement);
-    ev->appendKeyInt64(prop(PropSceneObject::dynamicIcon).name, _dynamicSimulationIconCode);
-    ev->appendKeyInt64(prop(PropSceneObject::dynamicFlag).name, _dynamicFlag);
-
-    ev->appendKeyPose(prop(PropSceneObject::bbPose).name, _bbFrame);
-    ev->appendKeyVector3(prop(PropSceneObject::size).name, _bbHalfSize * 2.0);
-
-    customObjectData.appendEventData(nullptr, ev);
-    customObjectData_volatile.appendEventData(nullptr, ev);
-
-    std::vector<std::string> tags;
-    getReferencedHandlesTags(tags);
-    for (size_t i = 0; i < tags.size(); i++)
-    {
-        if (tags[i].size() > 0)
-        {
-            std::vector<int> handles;
-            auto it = _customReferencedHandles.find(tags[i]);
-            for (size_t j = 0; j < it->second.size(); j++)
-                handles.push_back(it->second[j].generalObjectHandle);
-            ev->appendKeyHandleArray((REFSPREFIXDOT + tags[i]).c_str(), handles.data(), handles.size());
-        }
-    }
-    tags.clear();
-    getReferencedOriginalHandlesTags(tags);
-    for (size_t i = 0; i < tags.size(); i++)
-    {
-        if (tags[i].size() > 0)
-        {
-            std::vector<int> handles;
-            auto it = _customReferencedOriginalHandles.find(tags[i]);
-            for (size_t j = 0; j < it->second.size(); j++)
-                handles.push_back(it->second[j].generalObjectHandle);
-            ev->appendKeyHandleArray((ORIGREFSPREFIXDOT + tags[i]).c_str(), handles.data(), handles.size());
-        }
-    }
-
-    ev->appendKeyInt64(prop(PropSceneObject::movementOptions).name, _objectMovementOptions);
-    ev->appendKeyInt64(prop(PropSceneObject::movementPreferredAxes).name, _objectMovementPreferredAxes);
-    ev->appendKeyBool(prop(PropSceneObject::movTranslNoSim).name, (_objectMovementOptions & 1) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movTranslInSim).name, (_objectMovementOptions & 2) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movRotNoSim).name, (_objectMovementOptions & 4) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movRotInSim).name, (_objectMovementOptions & 8) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movAltTransl).name, (_objectMovementOptions & 16) == 0);
-    ev->appendKeyBool(prop(PropSceneObject::movAltRot).name, (_objectMovementOptions & 32) == 0);
-
-    ev->appendKeyBool(prop(PropSceneObject::movPrefTranslX).name, _objectMovementPreferredAxes & 1);
-    ev->appendKeyBool(prop(PropSceneObject::movPrefTranslY).name, _objectMovementPreferredAxes & 2);
-    ev->appendKeyBool(prop(PropSceneObject::movPrefTranslZ).name, _objectMovementPreferredAxes & 4);
-    ev->appendKeyBool(prop(PropSceneObject::movPrefRotX).name, _objectMovementPreferredAxes & 8);
-    ev->appendKeyBool(prop(PropSceneObject::movPrefRotY).name, _objectMovementPreferredAxes & 16);
-    ev->appendKeyBool(prop(PropSceneObject::movPrefRotZ).name, _objectMovementPreferredAxes & 32);
-
-    ev->appendKeyDoubleArray(prop(PropSceneObject::movementStepSize).name, _objectMovementStepSize, 2);
-    ev->appendKeyInt32Array(prop(PropSceneObject::movementRelativity).name, _objectMovementRelativity, 2);
-
-    Obj::addObjectEventData(ev);
-}
-
-void CSceneObject::pushObjectCreationEvent(bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CSceneObject::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
     if (_isInScene && App::scenes->getEventsEnabled())
     {
-        CCbor* ev = App::scenes->createSceneObjectAddEvent(this);
-        addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
-        App::scenes->pushEvent();
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        ev->appendKeyInt64(prop(PropSceneObject::layer).name, _visibilityLayer);
+        ev->appendKeyInt64(prop(PropSceneObject::childOrder).name, _childOrder);
+        std::vector<int> ch;
+        for (size_t i = 0; i < _childList.size(); i++)
+            ch.push_back(_childList[i]->getObjectHandle());
+        ev->appendKeyHandleArray(prop(PropSceneObject::children).name, (int*)nullptr, 0); // because 'naked'
+        ev->appendKeyVector3(prop(PropSceneObject::position).name, _localTransformation.X);
+        ev->appendKeyPose(prop(PropSceneObject::pose).name, _localTransformation);
+        ev->appendKeyQuaternion(prop(PropSceneObject::quaternion).name, _localTransformation.Q);
+        ev->appendKeyText(prop(PropSceneObject::name).name, _objectAlias.c_str());
+        ev->appendKeyBool(prop(PropSceneObject::modelInvisible).name, _modelInvisible);
+        ev->appendKeyBool(prop(PropSceneObject::modelBase).name, _modelBase);
 
-        if (_objectType == sim_sceneobject_shape)
+        ev->appendKeyInt64(prop(PropSceneObject::objectProperty).name, _objectProperty);
+        ev->appendKeyBool(prop(PropSceneObject::ignoreViewFitting).name, _objectProperty & sim_objectproperty_ignoreviewfitting);
+        ev->appendKeyBool(prop(PropSceneObject::collapsed).name, _objectProperty & sim_objectproperty_collapsed);
+        ev->appendKeyBool(prop(PropSceneObject::selectable).name, _objectProperty & sim_objectproperty_selectable);
+        ev->appendKeyBool(prop(PropSceneObject::selectModel).name, _objectProperty & sim_objectproperty_selectmodelbaseinstead);
+        ev->appendKeyBool(prop(PropSceneObject::hideFromModelBB).name, _objectProperty & sim_objectproperty_dontshowasinsidemodel);
+        ev->appendKeyBool(prop(PropSceneObject::selectInvisible).name, _objectProperty & sim_objectproperty_selectinvisible);
+        ev->appendKeyBool(prop(PropSceneObject::depthInvisible).name, _objectProperty & sim_objectproperty_depthinvisible);
+        ev->appendKeyBool(prop(PropSceneObject::cannotDelete).name, _objectProperty & sim_objectproperty_cannotdelete);
+        ev->appendKeyBool(prop(PropSceneObject::cannotDeleteSim).name, _objectProperty & sim_objectproperty_cannotdeleteduringsim);
+
+        ev->appendKeyInt64(prop(PropSceneObject::modelProperty).name, _modelProperty);
+        ev->appendKeyBool(prop(PropSceneObject::modelNotCollidable).name, _modelProperty & sim_modelproperty_not_collidable);
+        ev->appendKeyBool(prop(PropSceneObject::modelNotMeasurable).name, _modelProperty & sim_modelproperty_not_measurable);
+        ev->appendKeyBool(prop(PropSceneObject::modelNotDetectable).name, _modelProperty & sim_modelproperty_not_detectable);
+        ev->appendKeyBool(prop(PropSceneObject::modelNotDynamic).name, _modelProperty & sim_modelproperty_not_dynamic);
+        ev->appendKeyBool(prop(PropSceneObject::modelNotRespondable).name, _modelProperty & sim_modelproperty_not_respondable);
+        ev->appendKeyBool(prop(PropSceneObject::modelNotVisible).name, _modelProperty & sim_modelproperty_not_visible);
+        ev->appendKeyBool(prop(PropSceneObject::modelScriptsNotActive).name, _modelProperty & sim_modelproperty_scripts_inactive);
+        ev->appendKeyBool(prop(PropSceneObject::modelNotInParentBB).name, _modelProperty & sim_modelproperty_not_showasinsidemodel);
+
+        ev->appendKeyInt64(prop(PropSceneObject::parentUid).name, -1); // because 'naked'
+        ev->appendKeyHandle(prop(PropSceneObject::parent).name, -1); // because 'naked'
+        ev->appendKeyBool(prop(PropSceneObject::selected).name, _selected);
+        ev->appendKeyInt64(prop(PropSceneObject::hierarchyColor).name, _hierarchyColorIndex);
+        ev->appendKeyInt64(prop(PropSceneObject::collectionSelfCollInd).name, _collectionSelfCollisionIndicator);
+        ev->appendKeyBool(prop(PropSceneObject::collidable).name, _localObjectSpecialProperty & sim_objectspecialproperty_collidable);
+        ev->appendKeyBool(prop(PropSceneObject::measurable).name, _localObjectSpecialProperty & sim_objectspecialproperty_measurable);
+        ev->appendKeyBool(prop(PropSceneObject::detectable).name, _localObjectSpecialProperty & sim_objectspecialproperty_detectable);
+        ev->appendKeyText(prop(PropSceneObject::modelAcknowledgment).name, _modelAcknowledgement.c_str());
+        ev->appendKeyBuff(prop(PropSceneObject::dna).name, (unsigned char*)_dnaString.data(), _dnaString.size());
+        ev->appendKeyText(prop(PropSceneObject::persistentUid).name, _uniquePersistentIdString.c_str());
+        ev->appendKeyVector3(prop(PropSceneObject::calcLinearVelocity).name, _measuredLinearVelocity_velocityMeasurement);
+        ev->appendKeyVector3(prop(PropSceneObject::calcAngularVelocity).name, _measuredAngularVelocityAxis_velocityMeasurement);
+        ev->appendKeyInt64(prop(PropSceneObject::dynamicIcon).name, _dynamicSimulationIconCode);
+        ev->appendKeyInt64(prop(PropSceneObject::dynamicFlag).name, _dynamicFlag);
+
+        ev->appendKeyPose(prop(PropSceneObject::bbPose).name, _bbFrame);
+        ev->appendKeyVector3(prop(PropSceneObject::size).name, _bbHalfSize * 2.0);
+
+        customObjectData.appendEventData(nullptr, ev);
+        customObjectData_volatile.appendEventData(nullptr, ev);
+
+        std::vector<std::string> tags;
+        getReferencedHandlesTags(tags);
+        for (size_t i = 0; i < tags.size(); i++)
         {
-            std::vector<CMesh*> all;
-            std::vector<CPose> allTr;
-            std::vector<int64_t> mmid;
-            ((CShape*)this)->getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, &allTr);
-            mmid.resize(all.size());
-            for (size_t i = 0; i < all.size(); i++)
+            if (tags[i].size() > 0)
             {
-                all[i]->pushObjectCreationOrChangeEvent(_objectHandle, _objectUid, allTr[i], 0);
-                mmid[i] = all[i]->getObjectHandle();
+                std::vector<int> handles;
+                auto it = _customReferencedHandles.find(tags[i]);
+                for (size_t j = 0; j < it->second.size(); j++)
+                    handles.push_back(it->second[j].generalObjectHandle);
+                ev->appendKeyHandleArray((REFSPREFIXDOT + tags[i]).c_str(), handles.data(), handles.size());
             }
-            CCbor* ev = App::scenes->createSceneObjectChangedEvent(getObjectHandle(), false, prop(PropShape::meshes).name, false);
-            ev->appendKeyHandleArray(prop(PropShape::meshes).name, mmid.data(), mmid.size());
-            App::scenes->pushEvent();
         }
-        if (_objectType == sim_sceneobject_script)
+        tags.clear();
+        getReferencedOriginalHandlesTags(tags);
+        for (size_t i = 0; i < tags.size(); i++)
         {
-            ((CScript*)this)->detachedScript->pushObjectCreationEvent();
-            CCbor* ev = App::scenes->createSceneObjectChangedEvent(getObjectHandle(), false, prop(PropScript::detachedScript).name, false);
-            ev->appendKeyHandle(prop(PropScript::detachedScript).name, ((CScript*)this)->detachedScript->getObjectHandle());
-            App::scenes->pushEvent();
+            if (tags[i].size() > 0)
+            {
+                std::vector<int> handles;
+                auto it = _customReferencedOriginalHandles.find(tags[i]);
+                for (size_t j = 0; j < it->second.size(); j++)
+                    handles.push_back(it->second[j].generalObjectHandle);
+                ev->appendKeyHandleArray((ORIGREFSPREFIXDOT + tags[i]).c_str(), handles.data(), handles.size());
+            }
         }
+
+        ev->appendKeyInt64(prop(PropSceneObject::movementOptions).name, _objectMovementOptions);
+        ev->appendKeyInt64(prop(PropSceneObject::movementPreferredAxes).name, _objectMovementPreferredAxes);
+        ev->appendKeyBool(prop(PropSceneObject::movTranslNoSim).name, (_objectMovementOptions & 1) == 0);
+        ev->appendKeyBool(prop(PropSceneObject::movTranslInSim).name, (_objectMovementOptions & 2) == 0);
+        ev->appendKeyBool(prop(PropSceneObject::movRotNoSim).name, (_objectMovementOptions & 4) == 0);
+        ev->appendKeyBool(prop(PropSceneObject::movRotInSim).name, (_objectMovementOptions & 8) == 0);
+        ev->appendKeyBool(prop(PropSceneObject::movAltTransl).name, (_objectMovementOptions & 16) == 0);
+        ev->appendKeyBool(prop(PropSceneObject::movAltRot).name, (_objectMovementOptions & 32) == 0);
+
+        ev->appendKeyBool(prop(PropSceneObject::movPrefTranslX).name, _objectMovementPreferredAxes & 1);
+        ev->appendKeyBool(prop(PropSceneObject::movPrefTranslY).name, _objectMovementPreferredAxes & 2);
+        ev->appendKeyBool(prop(PropSceneObject::movPrefTranslZ).name, _objectMovementPreferredAxes & 4);
+        ev->appendKeyBool(prop(PropSceneObject::movPrefRotX).name, _objectMovementPreferredAxes & 8);
+        ev->appendKeyBool(prop(PropSceneObject::movPrefRotY).name, _objectMovementPreferredAxes & 16);
+        ev->appendKeyBool(prop(PropSceneObject::movPrefRotZ).name, _objectMovementPreferredAxes & 32);
+
+        ev->appendKeyDoubleArray(prop(PropSceneObject::movementStepSize).name, _objectMovementStepSize, 2);
+        ev->appendKeyInt32Array(prop(PropSceneObject::movementRelativity).name, _objectMovementRelativity, 2);
+
+        Obj::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
+}
+
+void CSceneObject::pushDependencyDataEvents(CCbor* ev /*= nullptr*/) const
+{
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectChangedEvent(_objectHandle, true, prop(PropSceneObject::parent).name, false);
+        int pH = -1;
+        if (_parentObject != nullptr)
+            pH = _parentObject->getObjectHandle();
+        ev->appendKeyHandle(prop(PropSceneObject::parent).name, pH);
+        ev->appendKeyHandleArray(prop(PropSceneObject::children).name, _childList);
+        Obj::pushDependencyDataEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
     }
 }
 
@@ -1602,8 +1583,9 @@ void CSceneObject::pushObjectRefreshEvent()
     if (_isInScene && App::scenes->getEventsEnabled())
     {
         CCbor* ev = App::scenes->createSceneObjectChangedEvent(this, true, nullptr, false);
-        addObjectEventData(ev);
+        pushNakedGenesisEvents(ev);
         App::scenes->pushEvent();
+        pushDependencyDataEvents();
     }
 }
 

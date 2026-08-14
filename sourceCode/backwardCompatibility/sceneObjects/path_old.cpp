@@ -213,11 +213,6 @@ void CPath_old::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CPath_old::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
-{
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
-}
-
 CSceneObject* CPath_old::copyYourself()
 {
     CPath_old* newPath = (CPath_old*)CSceneObject::copyYourself();

@@ -2119,24 +2119,32 @@ void CVisionSensor::removeSceneDependencies()
     _detectableEntityHandle = -1;
 }
 
-void CVisionSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CVisionSensor::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    color.addGenesisEventData(ev);
-    ev->appendKeyDouble(prop(PropVisionSensor::size).name, _visionSensorSize);
-    ev->appendKeyColor3(prop(PropVisionSensor::backgroundCol).name, _defaultBufferValues);
-    ev->appendKeyInt64(prop(PropVisionSensor::renderMode).name, _renderMode);
-    ev->appendKeyBool(prop(PropVisionSensor::backgroundSameAsEnv).name, _useSameBackgroundAsEnvironment);
-    ev->appendKeyBool(prop(PropVisionSensor::explicitHandling).name, _explicitHandling);
-    ev->appendKeyBool(prop(PropVisionSensor::useExtImage).name, _useExternalImage);
-    ev->appendKeyBool(prop(PropVisionSensor::ignoreRgbInfo).name, _ignoreRGBInfo);
-    ev->appendKeyBool(prop(PropVisionSensor::ignoreDepthInfo).name, _ignoreDepthInfo);
-    ev->appendKeyBool(prop(PropVisionSensor::omitPacket1).name, !_computeImageBasicStats);
-    ev->appendKeyBool(prop(PropVisionSensor::emitImageChangedEvent).name, _emitImageChangedEventEnabled);
-    ev->appendKeyBool(prop(PropVisionSensor::emitDepthChangedEvent).name, _emitDepthChangedEventEnabled);
-    _emitImageChangedEvent(ev);
-    _emitDepthChangedEvent(ev);
-    _emitTriggerStateAndPacketChangeEvents(ev);
-    CViewableBase::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        color.addGenesisEventData(ev);
+        ev->appendKeyDouble(prop(PropVisionSensor::size).name, _visionSensorSize);
+        ev->appendKeyColor3(prop(PropVisionSensor::backgroundCol).name, _defaultBufferValues);
+        ev->appendKeyInt64(prop(PropVisionSensor::renderMode).name, _renderMode);
+        ev->appendKeyBool(prop(PropVisionSensor::backgroundSameAsEnv).name, _useSameBackgroundAsEnvironment);
+        ev->appendKeyBool(prop(PropVisionSensor::explicitHandling).name, _explicitHandling);
+        ev->appendKeyBool(prop(PropVisionSensor::useExtImage).name, _useExternalImage);
+        ev->appendKeyBool(prop(PropVisionSensor::ignoreRgbInfo).name, _ignoreRGBInfo);
+        ev->appendKeyBool(prop(PropVisionSensor::ignoreDepthInfo).name, _ignoreDepthInfo);
+        ev->appendKeyBool(prop(PropVisionSensor::omitPacket1).name, !_computeImageBasicStats);
+        ev->appendKeyBool(prop(PropVisionSensor::emitImageChangedEvent).name, _emitImageChangedEventEnabled);
+        ev->appendKeyBool(prop(PropVisionSensor::emitDepthChangedEvent).name, _emitDepthChangedEventEnabled);
+        _emitImageChangedEvent(ev);
+        _emitDepthChangedEvent(ev);
+        _emitTriggerStateAndPacketChangeEvents(ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CVisionSensor::copyYourself()

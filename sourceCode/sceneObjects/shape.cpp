@@ -1485,45 +1485,53 @@ void CShape::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CShape::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CShape::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    _dynMaterial->setBoolProperty(nullptr, false, ev);
-    _dynMaterial->setIntProperty(nullptr, 0, ev);
-    _dynMaterial->setFloatProperty(nullptr, 0.0, ev);
-    _dynMaterial->setVector3Property(nullptr, nullptr, ev);
-    std::vector<double> dummy;
-    _dynMaterial->setFloatArrayProperty(nullptr, dummy, ev);
-    _dynMaterial->sendEngineString(ev);
-    if (sendAsChildlessOrphanMeshlessDetachedscriptless)
-        ev->appendKeyHandleArray(prop(PropShape::meshes).name, (int*)nullptr, 0);
-    else
+    if (_isInScene && App::scenes->getEventsEnabled())
     {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        _dynMaterial->setBoolProperty(nullptr, false, ev);
+        _dynMaterial->setIntProperty(nullptr, 0, ev);
+        _dynMaterial->setFloatProperty(nullptr, 0.0, ev);
+        _dynMaterial->setVector3Property(nullptr, nullptr, ev);
+        std::vector<double> dummy;
+        _dynMaterial->setFloatArrayProperty(nullptr, dummy, ev);
+        _dynMaterial->sendEngineString(ev);
+        ev->appendKeyHandleArray(prop(PropShape::meshes).name, (int*)nullptr, 0); // because 'naked'
+        ev->appendKeyInt64(prop(PropShape::respondableMask).name, _respondableMask);
+        ev->appendKeyBool(prop(PropShape::startInDynSleepMode).name, _startInDynamicSleeping);
+        ev->appendKeyBool(prop(PropShape::dynamic).name, !_shapeIsDynamicallyStatic);
+        ev->appendKeyBool(prop(PropShape::kinematic).name, _shapeIsDynamicallyKinematic);
+        ev->appendKeyBool(prop(PropShape::respondable).name, _shapeIsDynamicallyRespondable);
+        ev->appendKeyBool(prop(PropShape::setToDynamicWithParent).name, _setAutomaticallyToNonStaticIfGetsParent);
+        ev->appendKeyVector3(prop(PropShape::initLinearVelocity).name, _initialDynamicLinearVelocity);
+        ev->appendKeyVector3(prop(PropShape::initAngularVelocity).name, _initialDynamicAngularVelocity);
+        ev->appendKeyVector3(prop(PropShape::dynLinearVelocity).name, _dynamicLinearVelocity);
+        ev->appendKeyVector3(prop(PropShape::dynAngularVelocity).name, _dynamicAngularVelocity);
+        ev->appendKeyBool(prop(PropShape::convex).name, _mesh->isConvex());
+        ev->appendKeyBool(prop(PropShape::primitive).name, _mesh->isPure());
+        ev->appendKeyBool(prop(PropShape::compound).name, (_mesh->getComponentCount() > 1));
+        _mesh->addObjectEventData(_objectHandle, ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        App::scenes->pushEvent();
+
         std::vector<CMesh*> all;
         std::vector<CPose> allTr;
-        getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, &allTr);
         std::vector<int64_t> mmid;
+        ((CShape*)this)->getMesh()->getAllMeshComponentsCumulative(CPose::identityTransformation, all, &allTr);
         mmid.resize(all.size());
         for (size_t i = 0; i < all.size(); i++)
+        {
+            all[i]->pushGenesisOrChangeEvent(_objectHandle, _objectUid, allTr[i], 0);
             mmid[i] = all[i]->getObjectHandle();
+        }
+        CCbor* ev = App::scenes->createSceneObjectChangedEvent(_objectHandle, false, prop(PropShape::meshes).name, false);
         ev->appendKeyHandleArray(prop(PropShape::meshes).name, mmid.data(), mmid.size());
+        if (createdHere)
+            App::scenes->pushEvent();
     }
-
-    ev->appendKeyInt64(prop(PropShape::respondableMask).name, _respondableMask);
-    ev->appendKeyBool(prop(PropShape::startInDynSleepMode).name, _startInDynamicSleeping);
-    ev->appendKeyBool(prop(PropShape::dynamic).name, !_shapeIsDynamicallyStatic);
-    ev->appendKeyBool(prop(PropShape::kinematic).name, _shapeIsDynamicallyKinematic);
-    ev->appendKeyBool(prop(PropShape::respondable).name, _shapeIsDynamicallyRespondable);
-    ev->appendKeyBool(prop(PropShape::setToDynamicWithParent).name, _setAutomaticallyToNonStaticIfGetsParent);
-    ev->appendKeyVector3(prop(PropShape::initLinearVelocity).name, _initialDynamicLinearVelocity);
-    ev->appendKeyVector3(prop(PropShape::initAngularVelocity).name, _initialDynamicAngularVelocity);
-    ev->appendKeyVector3(prop(PropShape::dynLinearVelocity).name, _dynamicLinearVelocity);
-    ev->appendKeyVector3(prop(PropShape::dynAngularVelocity).name, _dynamicAngularVelocity);
-    ev->appendKeyBool(prop(PropShape::convex).name, _mesh->isConvex());
-    ev->appendKeyBool(prop(PropShape::primitive).name, _mesh->isPure());
-    ev->appendKeyBool(prop(PropShape::compound).name, (_mesh->getComponentCount() > 1));
-    _mesh->addObjectEventData(_objectHandle, ev);
-
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
 }
 
 void CShape::copyAttributesTo(CShape* target)

@@ -233,9 +233,9 @@ class CSceneObjectContainer
     void removeSceneDependencies();
 
     void checkObjectIsInstanciated(CSceneObject* obj, const char* location) const;
-    void pushObjectGenesisEvent_allObjects() const;
-    void pushObjectGenesisEvent_someObjects(const std::vector<CSceneObject*>& sceneObjects) const;
-    void pushObjectGenesisEvent_oneObject(CSceneObject* sceneObject) const;
+    void pushGenesisEvents_allObjects() const;
+    void pushGenesisEvents_someObjects(const std::vector<CSceneObject*>& sceneObjects) const;
+    void pushGenesisEvents_oneObject(CSceneObject* sceneObject) const;
     void appendNonObjectGenesisData(CCbor* ev) const;
 
     void getAllCollidableObjectsFromSceneExcept(const std::vector<CSceneObject*>* exceptionObjects, std::vector<CSceneObject*>& objects);

@@ -786,17 +786,25 @@ void CPointCloud::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CPointCloud::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CPointCloud::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    color.addGenesisEventData(ev);
-    ev->appendKeyBool(prop(PropPointCloud::ocTreeStruct).name, !_doNotUseOctreeStructure);
-    ev->appendKeyBool(prop(PropPointCloud::randomColors).name, _useRandomColors);
-    ev->appendKeyInt64(prop(PropPointCloud::pointSize).name, _pointSize);
-    ev->appendKeyInt64(prop(PropPointCloud::maxPtsInCell).name, _maxPointCountPerCell);
-    ev->appendKeyDouble(prop(PropPointCloud::cellSize).name, _cellSize);
-    ev->appendKeyDouble(prop(PropPointCloud::pointDisplayFraction).name, _pointDisplayRatio);
-    _updatePointCloudEvent(false, ev);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        color.addGenesisEventData(ev);
+        ev->appendKeyBool(prop(PropPointCloud::ocTreeStruct).name, !_doNotUseOctreeStructure);
+        ev->appendKeyBool(prop(PropPointCloud::randomColors).name, _useRandomColors);
+        ev->appendKeyInt64(prop(PropPointCloud::pointSize).name, _pointSize);
+        ev->appendKeyInt64(prop(PropPointCloud::maxPtsInCell).name, _maxPointCountPerCell);
+        ev->appendKeyDouble(prop(PropPointCloud::cellSize).name, _cellSize);
+        ev->appendKeyDouble(prop(PropPointCloud::pointDisplayFraction).name, _pointDisplayRatio);
+        _updatePointCloudEvent(false, ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CPointCloud::copyYourself()

@@ -406,11 +406,7 @@ void CCollectionContainer::_removeCollection(int64_t collectionHandle)
     {
         if (_allCollections[i]->getObjectHandle() == collectionHandle)
         {
-            if (App::scenes->getEventsEnabled())
-            {
-                App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED, collectionHandle, collectionHandle, nullptr, false);
-                App::scenes->pushEvent();
-            }
+            App::scenes->pushRemoveEvent(collectionHandle);
             delete _allCollections[i];
             _allCollections.erase(_allCollections.begin() + i);
             break;

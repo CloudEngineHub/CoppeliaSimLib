@@ -30,8 +30,7 @@ class CMesh : public CMeshWrapper
     CMesh* getFirstMesh() override;
     CMesh* getMeshFromUid(int64_t meshUid, const CPose& parentCumulTr, CPose& shapeRelTr) override;
     void appendMeshes(std::vector<CMesh*>& meshes) override;
-    void pushObjectCreationOrChangeEvent(int shapeHandle, int shapeUid, const CPose& shapeRelTr, int eventType);
-    void pushObjectRemoveEvent();
+    void pushGenesisOrChangeEvent(int shapeHandle, int shapeUid, const CPose& shapeRelTr, int eventType);
 
     int countTriangles() const override;
     void getCumulativeMeshes(const CPose& parentCumulTr, std::vector<double>& vertices, std::vector<int>* indices, std::vector<double>* normals) override;

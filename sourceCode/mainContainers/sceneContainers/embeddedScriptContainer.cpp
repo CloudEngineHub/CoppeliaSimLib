@@ -530,6 +530,9 @@ void CEmbeddedScriptContainer::pushMainScriptGenesisEvent() const
     {
         CDetachedScript* it = allScripts[i];
         if ((!it->getFlaggedForDestruction()) && (it->getScriptType() == sim_scripttype_main))
-            it->pushObjectCreationEvent();
+        {
+            it->pushNakedGenesisEvents();
+            break;
+        }
     }
 }

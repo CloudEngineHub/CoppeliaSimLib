@@ -506,93 +506,89 @@ void CMesh::appendMeshes(std::vector<CMesh*>& meshes)
     meshes.push_back(this);
 }
 
-void CMesh::pushObjectRemoveEvent()
-{
-    _isInSceneShapeHandle = -1;
-    _isInSceneShapeUid = -1;
-    App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED, _objectHandle, _objectHandle, nullptr, false);
-    App::scenes->pushEvent();
-}
-
-void CMesh::pushObjectCreationOrChangeEvent(int shapeHandle, int shapeUid, const CPose& shapeRelTr, int eventType)
+void CMesh::pushGenesisOrChangeEvent(int shapeHandle, int shapeUid, const CPose& shapeRelTr, int eventType)
 { // eventType: 0=creation, 1=change (full), 2=change(texture only + color and similar), 3=color and similar only
     _isInSceneShapeHandle = shapeHandle;
     _isInSceneShapeUid = shapeUid;
-    std::string eventTypeStr;
-    if (eventType == 0)
-        eventTypeStr = EVENTTYPE_OBJECTADDED;
-    else
-        eventTypeStr = EVENTTYPE_OBJECTCHANGED;
-    CCbor* ev = App::scenes->createEvent(eventTypeStr.c_str(), _objectHandle, _objectHandle, nullptr, false);
-    if (eventType < 2)
+    if (App::scenes->getEventsEnabled())
     {
-        Obj::addObjectEventData(ev);
-        ev->appendKeyHandle(prop(PropMesh::shape).name, _isInSceneShapeHandle);
-        ev->appendKeyInt64(prop(PropMesh::primitiveType).name, _purePrimitive);
-        ev->appendKeyInt64(prop(PropMesh::shapeUid).name, _isInSceneShapeUid);
-        std::vector<float> vertices;
-        vertices.resize(_verticesForDisplayAndDisk.size());
-        for (size_t j = 0; j < _verticesForDisplayAndDisk.size() / 3; j++)
+        std::string eventTypeStr = EVENTTYPE_OBJECTCHANGED;
+        if (eventType <= 1)
         {
-            C3Vector v;
-            v.setData(_verticesForDisplayAndDisk.data() + j * 3);
-            v = shapeRelTr * v;
-            vertices[3 * j + 0] = (float)v(0);
-            vertices[3 * j + 1] = (float)v(1);
-            vertices[3 * j + 2] = (float)v(2);
+            App::scenes->pushRemoveEvent(_objectHandle);
+            eventTypeStr = EVENTTYPE_OBJECTADDED;
+        }
+        CCbor* ev = App::scenes->createEvent(eventTypeStr.c_str(), _objectHandle, _objectHandle, nullptr, false);
+        if (eventType < 2)
+        {
+            Obj::pushNakedGenesisEvents(ev);
+            ev->appendKeyHandle(prop(PropMesh::shape).name, _isInSceneShapeHandle);
+            ev->appendKeyInt64(prop(PropMesh::primitiveType).name, _purePrimitive);
+            ev->appendKeyInt64(prop(PropMesh::shapeUid).name, _isInSceneShapeUid);
+            std::vector<float> vertices;
+            vertices.resize(_verticesForDisplayAndDisk.size());
+            for (size_t j = 0; j < _verticesForDisplayAndDisk.size() / 3; j++)
+            {
+                C3Vector v;
+                v.setData(_verticesForDisplayAndDisk.data() + j * 3);
+                v = shapeRelTr * v;
+                vertices[3 * j + 0] = (float)v(0);
+                vertices[3 * j + 1] = (float)v(1);
+                vertices[3 * j + 2] = (float)v(2);
+            }
+
+            std::vector<float> normals;
+            normals.resize(_indices.size() * 3);
+            for (size_t j = 0; j < _indices.size(); j++)
+            {
+                C3Vector n;
+                n.setData(&_normalsForDisplayAndDisk[0] + j * 3);
+                n = shapeRelTr.Q * n; // only orientation
+                normals[3 * j + 0] = (float)n(0);
+                normals[3 * j + 1] = (float)n(1);
+                normals[3 * j + 2] = (float)n(2);
+            }
+            ev->appendKeyMatrix(prop(PropMesh::vertices).name, vertices.data(), 3, vertices.size() / 3, false);
+            ev->appendKeyMatrix(prop(PropMesh::normals).name, normals.data(), 3, normals.size() / 3, false);
+            ev->appendKeyInt32Array(prop(PropMesh::indices).name, _indices.data(), _indices.size());
         }
 
-        std::vector<float> normals;
-        normals.resize(_indices.size() * 3);
-        for (size_t j = 0; j < _indices.size(); j++)
+
+        if (eventType < 3)
         {
-            C3Vector n;
-            n.setData(&_normalsForDisplayAndDisk[0] + j * 3);
-            n = shapeRelTr.Q * n; // only orientation
-            normals[3 * j + 0] = (float)n(0);
-            normals[3 * j + 1] = (float)n(1);
-            normals[3 * j + 2] = (float)n(2);
+            CTextureObject* to = nullptr;
+            const std::vector<float>* tc = nullptr;
+            if (_textureProperty != nullptr)
+            {
+                to = _textureProperty->getTextureObject();
+                tc = _textureProperty->getTextureCoordinates(-1, _verticesForDisplayAndDisk, _indices);
+            }
+
+            if ((to != nullptr) && (tc != nullptr))
+            {
+                int tRes[2];
+                to->getTextureSize(tRes[0], tRes[1]);
+                ev->appendKeyUint8Array(prop(PropMesh::texture).name, to->getTextureBufferPointer(), tRes[1] * tRes[0] * 4);
+                ev->appendKeyInt32Array(prop(PropMesh::textureResolution).name, tRes, 2);
+                ev->appendKeyFloatArray(prop(PropMesh::textureCoordinates).name, tc->data(), tc->size());
+                ev->appendKeyInt64(prop(PropMesh::textureApplyMode).name, _textureProperty->getApplyMode());
+                ev->appendKeyBool(prop(PropMesh::textureRepeatU).name, _textureProperty->getRepeatU());
+                ev->appendKeyBool(prop(PropMesh::textureRepeatV).name, _textureProperty->getRepeatV());
+                ev->appendKeyBool(prop(PropMesh::textureInterpolate).name, _textureProperty->getInterpolateColors());
+                ev->appendKeyInt64(prop(PropMesh::textureID).name, _textureProperty->getTextureObjectID());
+            }
         }
-        ev->appendKeyMatrix(prop(PropMesh::vertices).name, vertices.data(), 3, vertices.size() / 3, false);
-        ev->appendKeyMatrix(prop(PropMesh::normals).name, normals.data(), 3, normals.size() / 3, false);
-        ev->appendKeyInt32Array(prop(PropMesh::indices).name, _indices.data(), _indices.size());
+
+        color.addGenesisEventData(ev);
+        ev->appendKeyDouble(prop(PropMesh::shadingAngle).name, _shadingAngle);
+        ev->appendKeyBool(prop(PropMesh::showEdges).name, _visibleEdges);
+        ev->appendKeyBool(prop(PropMesh::culling).name, _culling);
+        ev->appendKeyBool(prop(PropMesh::wireframe).name, _wireframe);
+        ev->appendKeyBool(prop(PropMesh::convex).name, _convex);
+        ev->appendKeyText(prop(PropMesh::colorName).name, color.getColorName().c_str());
+
+        App::scenes->pushEvent();
     }
-
-
-    if (eventType < 3)
-    {
-        CTextureObject* to = nullptr;
-        const std::vector<float>* tc = nullptr;
-        if (_textureProperty != nullptr)
-        {
-            to = _textureProperty->getTextureObject();
-            tc = _textureProperty->getTextureCoordinates(-1, _verticesForDisplayAndDisk, _indices);
-        }
-
-        if ((to != nullptr) && (tc != nullptr))
-        {
-            int tRes[2];
-            to->getTextureSize(tRes[0], tRes[1]);
-            ev->appendKeyUint8Array(prop(PropMesh::texture).name, to->getTextureBufferPointer(), tRes[1] * tRes[0] * 4);
-            ev->appendKeyInt32Array(prop(PropMesh::textureResolution).name, tRes, 2);
-            ev->appendKeyFloatArray(prop(PropMesh::textureCoordinates).name, tc->data(), tc->size());
-            ev->appendKeyInt64(prop(PropMesh::textureApplyMode).name, _textureProperty->getApplyMode());
-            ev->appendKeyBool(prop(PropMesh::textureRepeatU).name, _textureProperty->getRepeatU());
-            ev->appendKeyBool(prop(PropMesh::textureRepeatV).name, _textureProperty->getRepeatV());
-            ev->appendKeyBool(prop(PropMesh::textureInterpolate).name, _textureProperty->getInterpolateColors());
-            ev->appendKeyInt64(prop(PropMesh::textureID).name, _textureProperty->getTextureObjectID());
-        }
-    }
-
-    color.addGenesisEventData(ev);
-    ev->appendKeyDouble(prop(PropMesh::shadingAngle).name, _shadingAngle);
-    ev->appendKeyBool(prop(PropMesh::showEdges).name, _visibleEdges);
-    ev->appendKeyBool(prop(PropMesh::culling).name, _culling);
-    ev->appendKeyBool(prop(PropMesh::wireframe).name, _wireframe);
-    ev->appendKeyBool(prop(PropMesh::convex).name, _convex);
-    ev->appendKeyText(prop(PropMesh::colorName).name, color.getColorName().c_str());
-
-    App::scenes->pushEvent();
 }
 
 int CMesh::countTriangles() const

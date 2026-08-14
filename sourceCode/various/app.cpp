@@ -1035,10 +1035,14 @@ void App::__logMsg(const char* originName, int verbosityLevel, const char* msg, 
 
         if (verbosityLevel & sim_verbosity_once)
         {
-            if (_logOnceMessages[originName][realVerbosityLevel][msg])
+            if (_logOnceMessages[""][realVerbosityLevel][msg])
                 return;
             else
-                _logOnceMessages[originName][realVerbosityLevel][msg] = true;
+                _logOnceMessages[""][realVerbosityLevel][msg] = true;
+//            if (_logOnceMessages[originName][realVerbosityLevel][msg])
+//                return;
+//            else
+//                _logOnceMessages[originName][realVerbosityLevel][msg] = true;
         }
 
         if ((scenes != nullptr) && scenes->getEventsEnabled() && VThread::isSimThread())
@@ -4272,13 +4276,13 @@ void App::pushGenesisEvents()
         scenes->pushEvent();
 
         if (scenes->sandboxScript != nullptr)
-            scenes->sandboxScript->pushObjectCreationEvent();
+            scenes->sandboxScript->pushNakedGenesisEvents();
 
         if (scenes->addOnScriptContainer != nullptr)
-            scenes->addOnScriptContainer->pushGenesisEvents();
+            scenes->addOnScriptContainer->pushNakedGenesisEvents();
 
         ev = scenes->createEvent(EVENTTYPE_OBJECTCHANGED, sim_handle_app, sim_handle_app, nullptr, false);
-        _obj->addObjectEventData(ev);
+        _obj->pushNakedGenesisEvents(ev);
         ev->appendKeyText(prop(PropApp::sessionId).name, scenes->getSessionId().c_str());
         ev->appendKeyInt64(prop(PropApp::protocolVersion).name, _eventProtocolVersion);
         ev->appendKeyText(prop(PropApp::productVersion).name, SIM_VERSION_STR_SHORT);

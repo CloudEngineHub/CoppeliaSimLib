@@ -93,7 +93,8 @@ CDetachedScript::~CDetachedScript()
 { // use destory further below to delete the object!
     TRACE_INTERNAL;
     _killInterpreterState(); // should already have been done outside of the destructor!
-    pushObjectRemoveEvent();
+    if (isNotInCopyBuffer())
+        App::scenes->pushRemoveEvent(_objectHandle, _scriptUid);
     delete _outsideCommandQueue;
 
     // Old:
@@ -1100,12 +1101,13 @@ int CDetachedScript::getScriptState() const
     return _scriptState;
 }
 
-void CDetachedScript::pushObjectCreationEvent()
+void CDetachedScript::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
     if (isNotInCopyBuffer() && App::scenes->getEventsEnabled())
     {
-        CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _scriptUid, nullptr, false);
-        Obj::addObjectEventData(ev);
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _scriptUid, nullptr, false);
         ev->appendKeyBool(prop(PropDetachedScript::scriptEnabled).name, !_scriptIsDisabled);
         ev->appendKeyText(prop(PropDetachedScript::scriptType).name, getScriptTypeStr().c_str());
         ev->appendKeyInt64(prop(PropDetachedScript::scriptState).name, _scriptState);
@@ -1116,16 +1118,9 @@ void CDetachedScript::pushObjectCreationEvent()
         ev->appendKeyText(prop(PropDetachedScript::scriptName).name, getScriptName().c_str());
         ev->appendKeyText(prop(PropDetachedScript::addOnPath).name, _addOnPath.c_str());
         ev->appendKeyText(prop(PropDetachedScript::addOnMenuPath).name, _addOnMenuPath.c_str());
-        App::scenes->pushEvent();
-    }
-}
-
-void CDetachedScript::pushObjectRemoveEvent()
-{
-    if (isNotInCopyBuffer() && App::scenes->getEventsEnabled())
-    {
-        App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED, _objectHandle, _scriptUid, nullptr, false);
-        App::scenes->pushEvent();
+        Obj::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
     }
 }
 

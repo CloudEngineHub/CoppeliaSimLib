@@ -527,15 +527,6 @@ bool CSceneContainer::shouldTemporarilySuspendMainScript()
     return (retVal);
 }
 
-void CSceneContainer::pushSceneObjectRemoveEvent(const CSceneObject* object)
-{
-    if (getEventsEnabled())
-    {
-        _createGeneralEvent(EVENTTYPE_OBJECTREMOVED, object->getObjectHandle(), object->getObjectUid(), nullptr, nullptr, false);
-        pushEvent();
-    }
-}
-
 CCbor* CSceneContainer::createSceneObjectAddEvent(const CSceneObject* object)
 {
     return (_createGeneralEvent(EVENTTYPE_OBJECTADDED, object->getObjectHandle(), object->getObjectUid(), nullptr,
@@ -553,8 +544,7 @@ CCbor* CSceneContainer::createObjectChangedEvent(int64_t objectHandle, const cha
     return _createGeneralEvent(EVENTTYPE_OBJECTCHANGED, objectHandle, objectHandle, nullptr, fieldName, mergeable);
 }
 
-CCbor* CSceneContainer::createSceneObjectChangedEvent(const CSceneObject* object, bool isCommonObjectData,
-                                                      const char* fieldName, bool mergeable)
+CCbor* CSceneContainer::createSceneObjectChangedEvent(const CSceneObject* object, bool isCommonObjectData, const char* fieldName, bool mergeable)
 {
     const char* ot = nullptr;
     std::string objType;
@@ -624,6 +614,17 @@ void CSceneContainer::pushEvent()
 {
     _events->pushEvent();
     _eventMutex.unlock();
+}
+
+void CSceneContainer::pushRemoveEvent(int64_t objectHandle, int64_t uid /*= -1*/)
+{
+    if (getEventsEnabled())
+    {
+        if (uid == -1)
+            uid = objectHandle;
+        createEvent(EVENTTYPE_OBJECTREMOVED, objectHandle, uid, nullptr, false);
+        pushEvent();
+    }
 }
 
 CCbor* CSceneContainer::getEvents() const

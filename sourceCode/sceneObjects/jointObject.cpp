@@ -2057,54 +2057,72 @@ void CJoint::removeSceneDependencies()
     setDependencyMasterJointHandle(-1);
 }
 
-void CJoint::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CJoint::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    _color.addGenesisEventData(ev);
-    ev->appendKeyText(prop(PropJoint::jointType).name, getJointTypeStr().c_str());
-    ev->appendKeyInt64(prop(PropJoint::jointMode).name, _jointMode);
-    ev->appendKeyInt64(prop(PropJoint::dynCtrlMode).name, _dynCtrlMode);
-    ev->appendKeyBool(prop(PropJoint::dynSmoothMotionProfile).name, _dynSmoothMotionProfile);
-    ev->appendKeyHandle(prop(PropJoint::dependencyMaster).name, _dependencyMasterJointHandle);
-    ev->appendKeyDouble(prop(PropJoint::targetPos).name, _targetPos);
-    ev->appendKeyDouble(prop(PropJoint::targetVel).name, _targetVel);
-    double arr[2] = {_dependencyJointOffset, _dependencyJointMult};
-    ev->appendKeyDoubleArray(prop(PropJoint::dependencyParams).name, arr, 2);
-    ev->appendKeyBool(prop(PropJoint::cyclic).name, _isCyclic);
-    ev->appendKeyBool(prop(PropJoint::enforceLimits).name, _enforceLimits);
-    ev->appendKeyDouble(prop(PropJoint::targetForce).name, _targetForce);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        _color.addGenesisEventData(ev);
+        ev->appendKeyText(prop(PropJoint::jointType).name, getJointTypeStr().c_str());
+        ev->appendKeyInt64(prop(PropJoint::jointMode).name, _jointMode);
+        ev->appendKeyInt64(prop(PropJoint::dynCtrlMode).name, _dynCtrlMode);
+        ev->appendKeyBool(prop(PropJoint::dynSmoothMotionProfile).name, _dynSmoothMotionProfile);
+        ev->appendKeyHandle(prop(PropJoint::dependencyMaster).name, -1); // because 'naked'
+        ev->appendKeyDouble(prop(PropJoint::targetPos).name, _targetPos);
+        ev->appendKeyDouble(prop(PropJoint::targetVel).name, _targetVel);
+        double arr[2] = {_dependencyJointOffset, _dependencyJointMult};
+        ev->appendKeyDoubleArray(prop(PropJoint::dependencyParams).name, arr, 2);
+        ev->appendKeyBool(prop(PropJoint::cyclic).name, _isCyclic);
+        ev->appendKeyBool(prop(PropJoint::enforceLimits).name, _enforceLimits);
+        ev->appendKeyDouble(prop(PropJoint::targetForce).name, _targetForce);
 
-    ev->appendKeyDouble(prop(PropJoint::jointForce).name, _lastForceOrTorque_dynStep);
-    ev->appendKeyDouble(prop(PropJoint::averageJointForce).name, _filteredForceOrTorque);
-    ev->appendKeyQuaternion(prop(PropJoint::quaternion).name, _sphericalTransf);
-    ev->appendKeyDouble(prop(PropJoint::position).name, _pos);
-    ev->appendKeyDouble(prop(PropJoint::screwLead).name, _screwLead);
-    double interv[2];
-    getInterval(interv[0], interv[1]);
-    ev->appendKeyPose(prop(PropJoint::intrinsicError).name, _intrinsicTransformationError);
-    ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
-    ev->appendKeyDouble(prop(PropJoint::length).name, _length);
-    ev->appendKeyDouble(prop(PropJoint::diameter).name, _diameter);
-    ev->appendKeyDoubleArray(prop(PropJoint::springDamperParams).name, _dynCtrl_kc, 2);
-    if ((_isCyclic && (_jointType == sim_joint_revolute)) || (_jointType == sim_joint_spherical))
-        ev->appendKeyDoubleArray(prop(PropJoint::bounds).name, nullptr, 0);
-    else
-        ev->appendKeyDoubleArray(prop(PropJoint::bounds).name, arr, 2);
+        ev->appendKeyDouble(prop(PropJoint::jointForce).name, _lastForceOrTorque_dynStep);
+        ev->appendKeyDouble(prop(PropJoint::averageJointForce).name, _filteredForceOrTorque);
+        ev->appendKeyQuaternion(prop(PropJoint::quaternion).name, _sphericalTransf);
+        ev->appendKeyDouble(prop(PropJoint::position).name, _pos);
+        ev->appendKeyDouble(prop(PropJoint::screwLead).name, _screwLead);
+        double interv[2];
+        getInterval(interv[0], interv[1]);
+        ev->appendKeyPose(prop(PropJoint::intrinsicError).name, _intrinsicTransformationError);
+        ev->appendKeyPose(prop(PropJoint::intrinsicPose).name, getIntrinsicTransformation(true));
+        ev->appendKeyDouble(prop(PropJoint::length).name, _length);
+        ev->appendKeyDouble(prop(PropJoint::diameter).name, _diameter);
+        ev->appendKeyDoubleArray(prop(PropJoint::springDamperParams).name, _dynCtrl_kc, 2);
+        if ((_isCyclic && (_jointType == sim_joint_revolute)) || (_jointType == sim_joint_spherical))
+            ev->appendKeyDoubleArray(prop(PropJoint::bounds).name, nullptr, 0);
+        else
+            ev->appendKeyDoubleArray(prop(PropJoint::bounds).name, arr, 2);
 
-    ev->appendKeyDoubleArray(prop(PropJoint::maxVelAccelJerk).name, _maxVelAccelJerk, 3);
-    ev->appendKeyDouble(prop(PropJoint::calcVelocity).name, _velCalc_vel);
+        ev->appendKeyDoubleArray(prop(PropJoint::maxVelAccelJerk).name, _maxVelAccelJerk, 3);
+        ev->appendKeyDouble(prop(PropJoint::calcVelocity).name, _velCalc_vel);
 
-    // Engine properties:
-    setBoolProperty(nullptr, false, ev);
-    setIntProperty(nullptr, 0, ev);
-    setFloatProperty(nullptr, 0.0, ev);
-    setIntArray2Property(nullptr, nullptr, ev);
-    C3Vector dummy;
-    setVector3Property(nullptr, dummy, ev);
-    std::vector<double> dummy2;
-    setFloatArrayProperty(nullptr, dummy2, ev);
-    _sendEngineString(ev);
+        // Engine properties:
+        setBoolProperty(nullptr, false, ev);
+        setIntProperty(nullptr, 0, ev);
+        setFloatProperty(nullptr, 0.0, ev);
+        setIntArray2Property(nullptr, nullptr, ev);
+        C3Vector dummy;
+        setVector3Property(nullptr, dummy, ev);
+        std::vector<double> dummy2;
+        setFloatArrayProperty(nullptr, dummy2, ev);
+        _sendEngineString(ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
+}
 
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+void CJoint::pushDependencyDataEvents(CCbor* ev /*= nullptr*/) const
+{
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        CCbor* ev = App::scenes->createSceneObjectChangedEvent(_objectHandle, false, prop(PropJoint::dependencyMaster).name, false);
+        CSceneObject::pushDependencyDataEvents(ev);
+        ev->appendKeyHandle(prop(PropJoint::dependencyMaster).name, _dependencyMasterJointHandle);
+        App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CJoint::copyYourself()

@@ -147,21 +147,32 @@ void CScript::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CScript::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CScript::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    _scriptColor.addGenesisEventData(ev);
-    ev->appendKeyBool(prop(PropScript::resetAfterSimError).name, _resetAfterSimError);
-    ev->appendKeyDouble(prop(PropScript::size).name, _scriptSize);
-    if (sendAsChildlessOrphanMeshlessDetachedscriptless)
-        ev->appendKeyHandle(prop(PropScript::detachedScript).name, -1);
-    else
-        ev->appendKeyHandle(prop(PropScript::detachedScript).name, detachedScript->getObjectHandle());
-    std::string st;
-    auto enum_value = magic_enum::enum_cast<scriptType>(detachedScript->getScriptType());
-    if (enum_value.has_value())
-        st = magic_enum::enum_name(enum_value.value()).data();
-    ev->appendKeyText(prop(PropScript::type).name, st.c_str());
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        _scriptColor.addGenesisEventData(ev);
+        ev->appendKeyBool(prop(PropScript::resetAfterSimError).name, _resetAfterSimError);
+        ev->appendKeyDouble(prop(PropScript::size).name, _scriptSize);
+        ev->appendKeyHandle(prop(PropScript::detachedScript).name, -1); // because 'naked'
+        std::string st;
+        auto enum_value = magic_enum::enum_cast<scriptType>(detachedScript->getScriptType());
+        if (enum_value.has_value())
+            st = magic_enum::enum_name(enum_value.value()).data();
+        ev->appendKeyText(prop(PropScript::type).name, st.c_str());
+        CSceneObject::pushNakedGenesisEvents(ev);
+        App::scenes->pushEvent();
+
+        ((CScript*)this)->detachedScript->pushNakedGenesisEvents();
+
+        ev = App::scenes->createSceneObjectChangedEvent(_objectHandle, false, prop(PropScript::detachedScript).name, false);
+        ev->appendKeyHandle(prop(PropScript::detachedScript).name, ((CScript*)this)->detachedScript->getObjectHandle());
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CScript::copyYourself()

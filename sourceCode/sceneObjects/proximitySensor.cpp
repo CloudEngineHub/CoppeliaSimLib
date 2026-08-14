@@ -271,24 +271,32 @@ void CProxSensor::removeSceneDependencies()
     _sensableObject_deprecated = -1;
 }
 
-void CProxSensor::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CProxSensor::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    volumeColor.addGenesisEventData(ev);
-    detectionRayColor.addGenesisEventData(ev);
-    ev->appendKeyBool(prop(PropProximitySensor::frontFaceDetection).name, _frontFaceDetection);
-    ev->appendKeyBool(prop(PropProximitySensor::backFaceDetection).name, _backFaceDetection);
-    ev->appendKeyBool(prop(PropProximitySensor::exactMode).name, _exactMode);
-    ev->appendKeyBool(prop(PropProximitySensor::explicitHandling).name, _explicitHandling);
-    ev->appendKeyBool(prop(PropProximitySensor::showVolume).name, _showVolume);
-    ev->appendKeyBool(prop(PropProximitySensor::randomizedDetection).name, _randomizedDetection);
-    ev->appendKeyDouble(prop(PropProximitySensor::angleThreshold).name, _angleThreshold);
-    ev->appendKeyDouble(prop(PropProximitySensor::size).name, _proxSensorSize);
-    ev->appendKeyText(prop(PropProximitySensor::sensorType).name, getSensorTypeStr().c_str());
-    ev->appendKeyHandle(prop(PropProximitySensor::detectedObject).name, _detectedObjectHandle);
-    ev->appendKeyVector3(prop(PropProximitySensor::detectedPoint).name, _detectedPoint);
-    ev->appendKeyVector3(prop(PropProximitySensor::detectedNormal).name, _detectedNormalVector);
-    convexVolume->sendEventData(ev);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        volumeColor.addGenesisEventData(ev);
+        detectionRayColor.addGenesisEventData(ev);
+        ev->appendKeyBool(prop(PropProximitySensor::frontFaceDetection).name, _frontFaceDetection);
+        ev->appendKeyBool(prop(PropProximitySensor::backFaceDetection).name, _backFaceDetection);
+        ev->appendKeyBool(prop(PropProximitySensor::exactMode).name, _exactMode);
+        ev->appendKeyBool(prop(PropProximitySensor::explicitHandling).name, _explicitHandling);
+        ev->appendKeyBool(prop(PropProximitySensor::showVolume).name, _showVolume);
+        ev->appendKeyBool(prop(PropProximitySensor::randomizedDetection).name, _randomizedDetection);
+        ev->appendKeyDouble(prop(PropProximitySensor::angleThreshold).name, _angleThreshold);
+        ev->appendKeyDouble(prop(PropProximitySensor::size).name, _proxSensorSize);
+        ev->appendKeyText(prop(PropProximitySensor::sensorType).name, getSensorTypeStr().c_str());
+        ev->appendKeyHandle(prop(PropProximitySensor::detectedObject).name, _detectedObjectHandle);
+        ev->appendKeyVector3(prop(PropProximitySensor::detectedPoint).name, _detectedPoint);
+        ev->appendKeyVector3(prop(PropProximitySensor::detectedNormal).name, _detectedNormalVector);
+        convexVolume->sendEventData(ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CProxSensor::copyYourself()
@@ -408,6 +416,7 @@ void CProxSensor::simulationEnded()
         if ((getCumulativeModelProperty() & sim_modelproperty_not_reset) == 0)
             setExplicitHandling(_initialExplicitHandling);
     }
+    _setDetectedObjectAndInfo(-1);
     CSceneObject::simulationEnded();
 }
 

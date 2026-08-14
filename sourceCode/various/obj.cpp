@@ -1,5 +1,6 @@
 #include <obj.h>
 #include <utils.h>
+#include <app.h>
 
 std::string OBJECT_TYPE = "object";
 
@@ -34,13 +35,25 @@ void Obj::copyYourselfInto(Obj* it) const
     it->_isSceneObject = _isSceneObject;
 }
 
-void Obj::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void Obj::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    ev->appendKeyText(prop(PropObject::objectType).name, _objectTypeStr.c_str());
-    ev->appendKeyTextArray(prop(PropObject::metaInfoSuperClass).name, _superClass);
-    ev->appendKeyTextArray(prop(PropObject::metaInfoNameSpaces).name, _nameSpaces);
-    ev->appendKeyBool(prop(PropObject::metaInfoIsClass).name, _isClass);
-    ev->appendKeyBool(prop(PropObject::metaInfoIsSceneObject).name, _isSceneObject);
+    if (App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createObjectChangedEvent(_objectHandle, prop(PropObject::objectType).name, false);
+        ev->appendKeyText(prop(PropObject::objectType).name, _objectTypeStr.c_str());
+        ev->appendKeyTextArray(prop(PropObject::metaInfoSuperClass).name, _superClass);
+        ev->appendKeyTextArray(prop(PropObject::metaInfoNameSpaces).name, _nameSpaces);
+        ev->appendKeyBool(prop(PropObject::metaInfoIsClass).name, _isClass);
+        ev->appendKeyBool(prop(PropObject::metaInfoIsSceneObject).name, _isSceneObject);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
+}
+
+void Obj::pushDependencyDataEvents(CCbor* ev /*= nullptr*/) const
+{
 }
 
 int64_t Obj::getObjectHandle() const

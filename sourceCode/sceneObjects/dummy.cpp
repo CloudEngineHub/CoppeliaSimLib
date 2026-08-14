@@ -272,23 +272,41 @@ void CDummy::removeSceneDependencies()
     setLinkedDummyHandle(-1, false);
 }
 
-void CDummy::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CDummy::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    _dummyColor.addGenesisEventData(ev);
-    ev->appendKeyDouble(prop(PropDummy::size).name, _dummySize);
-    ev->appendKeyHandle(prop(PropDummy::linkedDummy).name, _linkedDummyHandle);
-    ev->appendKeyText(prop(PropDummy::dummyType).name, getDummyTypeStr().c_str());
-    ev->appendKeyText(prop(PropDummy::assemblyTag).name, _assemblyTag.c_str());
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        _dummyColor.addGenesisEventData(ev);
+        ev->appendKeyDouble(prop(PropDummy::size).name, _dummySize);
+        ev->appendKeyHandle(prop(PropDummy::linkedDummy).name, -1); // because 'naked'
+        ev->appendKeyText(prop(PropDummy::dummyType).name, getDummyTypeStr().c_str());
+        ev->appendKeyText(prop(PropDummy::assemblyTag).name, _assemblyTag.c_str());
 
-    // Engine properties:
-    setBoolProperty(nullptr, false, ev);
-    setIntProperty(nullptr, 0, ev);
-    setFloatProperty(nullptr, 0.0, ev);
-    std::vector<double> dummy;
-    setFloatArrayProperty(nullptr, dummy, ev);
-    _sendEngineString(ev);
+        // Engine properties:
+        setBoolProperty(nullptr, false, ev);
+        setIntProperty(nullptr, 0, ev);
+        setFloatProperty(nullptr, 0.0, ev);
+        std::vector<double> dummy;
+        setFloatArrayProperty(nullptr, dummy, ev);
+        _sendEngineString(ev);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
+}
 
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+void CDummy::pushDependencyDataEvents(CCbor* ev /*= nullptr*/) const
+{
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        CCbor* ev = App::scenes->createSceneObjectChangedEvent(_objectHandle, false, prop(PropDummy::linkedDummy).name, false);
+        CSceneObject::pushDependencyDataEvents(ev);
+        ev->appendKeyHandle(prop(PropDummy::linkedDummy).name, _linkedDummyHandle);
+        App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CDummy::copyYourself()

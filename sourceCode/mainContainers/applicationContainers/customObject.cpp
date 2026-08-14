@@ -19,11 +19,8 @@ CustomObject::~CustomObject()
 {
     if (!isClass())
     {
-        if ((App::scenes != nullptr) && App::scenes->getEventsEnabled())
-        {
-            App::scenes->createEvent(EVENTTYPE_OBJECTREMOVED, _objectHandle, _objectHandle, nullptr, false);
-            App::scenes->pushEvent();
-        }
+        if (App::scenes != nullptr)
+            App::scenes->pushRemoveEvent(_objectHandle);
     }
 }
 
@@ -207,12 +204,13 @@ void CustomObject::_triggerEvent(const char* pName, CCbor* evv /*= nullptr*/)
     _ignoreSetterGetter = false;
 }
 
-void CustomObject::pushObjectCreationEvent()
+void CustomObject::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
     if ((App::scenes != nullptr) && App::scenes->getEventsEnabled())
     {
-        CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _objectHandle, nullptr, false);
-        Obj::addObjectEventData(ev);
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _objectHandle, nullptr, false);
         int indexI = 0;
         int index = indexI;
         std::string pName, appartenance;
@@ -223,7 +221,9 @@ void CustomObject::pushObjectCreationEvent()
             index = ++indexI;
             pName.clear();
         }
-        App::scenes->pushEvent();
+        Obj::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
     }
 }
 

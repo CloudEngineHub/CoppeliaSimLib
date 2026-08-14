@@ -441,7 +441,7 @@ void CDrawingObject::pushAddEvent()
     if ((otherFloatsPerItem == 0) && App::scenes->getEventsEnabled())
     {
         CCbor* ev = App::scenes->createEvent(EVENTTYPE_OBJECTADDED, _objectHandle, _objectHandle, nullptr, false);
-        Obj::addObjectEventData(ev);
+        Obj::pushNakedGenesisEvents(ev);
         std::string tp;
         switch (_objectType & 0x001f)
         {

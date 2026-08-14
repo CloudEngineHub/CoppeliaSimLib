@@ -323,18 +323,26 @@ void CLight::removeSceneDependencies()
     CSceneObject::removeSceneDependencies();
 }
 
-void CLight::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
+void CLight::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
 {
-    objectColor.addGenesisEventData(ev);
-    lightColor.addGenesisEventData(ev);
-    ev->appendKeyDouble(prop(PropLight::size).name, _lightSize);
-    ev->appendKeyText(prop(PropLight::lightType).name, getLightTypeStr().c_str());
-    ev->appendKeyDouble(prop(PropLight::spotCutoffAngle).name, _spotCutoffAngle);
-    ev->appendKeyInt64(prop(PropLight::spotExponent).name, _spotExponent);
-    ev->appendKeyBool(prop(PropLight::enabled).name, lightActive);
-    double arr[3] = {constantAttenuation, linearAttenuation, quadraticAttenuation};
-    ev->appendKeyDoubleArray(prop(PropLight::attenuationFactors).name, arr, 3);
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectAddEvent(this);
+        objectColor.addGenesisEventData(ev);
+        lightColor.addGenesisEventData(ev);
+        ev->appendKeyDouble(prop(PropLight::size).name, _lightSize);
+        ev->appendKeyText(prop(PropLight::lightType).name, getLightTypeStr().c_str());
+        ev->appendKeyDouble(prop(PropLight::spotCutoffAngle).name, _spotCutoffAngle);
+        ev->appendKeyInt64(prop(PropLight::spotExponent).name, _spotExponent);
+        ev->appendKeyBool(prop(PropLight::enabled).name, lightActive);
+        double arr[3] = {constantAttenuation, linearAttenuation, quadraticAttenuation};
+        ev->appendKeyDoubleArray(prop(PropLight::attenuationFactors).name, arr, 3);
+        CSceneObject::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
 }
 
 CSceneObject* CLight::copyYourself()

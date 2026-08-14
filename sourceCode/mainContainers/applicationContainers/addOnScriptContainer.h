@@ -38,7 +38,7 @@ class CAddOnScriptContainer
     int getSysFuncAndHookCnt(int sysCall) const;
     void setSysFuncAndHookCnt(int sysCall, int cnt);
 
-    void pushGenesisEvents() const;
+    void pushNakedGenesisEvents(CCbor* ev = nullptr);
 
     bool shouldTemporarilySuspendMainScript();
     void getActiveScripts(std::vector<CDetachedScript*>& scripts) const;

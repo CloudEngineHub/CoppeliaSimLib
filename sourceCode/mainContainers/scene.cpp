@@ -1252,8 +1252,7 @@ void CScene::pushGenesisEvents()
         sceneObjects->embeddedScriptContainer->pushMainScriptGenesisEvent(); // first
 
         CCbor* ev = App::scenes->createObjectChangedEvent(sim_handle_scene, nullptr, false);
-        Obj::addObjectEventData(ev);
-//    ev->appendKeyInt64(prop(PropObject::handle).name, _objectHandle);
+        Obj::pushNakedGenesisEvents(ev);
         simulation->appendGenesisData(ev);
         environment->appendGenesisData(ev);
         customSceneData.appendEventData(nullptr, ev);
@@ -1267,7 +1266,7 @@ void CScene::pushGenesisEvents()
         sceneObjects->appendNonObjectGenesisData(ev);
         App::scenes->pushEvent();
 
-        sceneObjects->pushObjectGenesisEvent_allObjects();
+        sceneObjects->pushGenesisEvents_allObjects();
         customObjects->pushGenesisEvents();
         collections->pushGenesisEvents();
 
@@ -1916,7 +1915,7 @@ bool CScene::_loadModelOrScene(CSer& ar, bool selectLoaded, bool isScene, bool j
     sceneObjects->setScriptsTemporarilySuspended(false);
     App::scenes->enableEvents();
     if (!isScene)
-        sceneObjects->pushObjectGenesisEvent_someObjects(newObjects); // scene load gets the genesis event anyways
+        sceneObjects->pushGenesisEvents_someObjects(newObjects); // scene load gets the genesis event anyways
     return true;
 }
 

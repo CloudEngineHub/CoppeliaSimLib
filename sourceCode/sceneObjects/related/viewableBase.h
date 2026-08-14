@@ -10,7 +10,7 @@ class CViewableBase : public CSceneObject
     virtual ~CViewableBase();
 
     // Following functions need to be implemented in each class derived from CViewableBase
-    virtual void addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless = false) override;
+    void pushNakedGenesisEvents(CCbor* ev = nullptr) override;
     virtual CSceneObject* copyYourself() override;
 #ifdef SIM_WITH_GUI
     virtual void display(CViewableBase* renderingObject, int displayAttrib) override;

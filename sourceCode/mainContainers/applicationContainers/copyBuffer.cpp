@@ -280,7 +280,7 @@ int CCopyBuffer::pasteBuffer(bool intoLockedScene, int selectionMode)
     App::scenes->interfaceStackContainer->destroyStack(stack);
 
     App::scenes->enableEvents();
-    App::scene->sceneObjects->pushObjectGenesisEvent_someObjects(objectCopy);
+    App::scene->sceneObjects->pushGenesisEvents_someObjects(objectCopy);
 
     return (1);
 }

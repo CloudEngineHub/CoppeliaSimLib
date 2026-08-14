@@ -107,11 +107,6 @@ void CMill::removeSceneDependencies()
     _millableObject = -1;
 }
 
-void CMill::addObjectEventData(CCbor* ev, bool sendAsChildlessOrphanMeshlessDetachedscriptless /*= false*/)
-{
-    CSceneObject::addObjectEventData(ev, sendAsChildlessOrphanMeshlessDetachedscriptless);
-}
-
 CSceneObject* CMill::copyYourself()
 {
     CMill* newMill = (CMill*)CSceneObject::copyYourself();
