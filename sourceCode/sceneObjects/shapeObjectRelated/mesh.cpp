@@ -513,10 +513,12 @@ void CMesh::pushGenesisOrChangeEvent(int shapeHandle, int shapeUid, const CPose&
     if (App::scenes->getEventsEnabled())
     {
         std::string eventTypeStr = EVENTTYPE_OBJECTCHANGED;
-        if (eventType == 0)
+        if (eventType <= 1)
+        {
+            if (eventType == 1)
+                App::scenes->pushRemoveEvent(_objectHandle);
             eventTypeStr = EVENTTYPE_OBJECTADDED;
-        else if (eventType == 1)
-            App::scenes->pushRemoveEvent(_objectHandle);
+        }
         CCbor* ev = App::scenes->createEvent(eventTypeStr.c_str(), _objectHandle, _objectHandle, nullptr, false);
         if (eventType < 2)
         {
