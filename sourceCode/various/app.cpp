@@ -1035,14 +1035,10 @@ void App::__logMsg(const char* originName, int verbosityLevel, const char* msg, 
 
         if (verbosityLevel & sim_verbosity_once)
         {
-            if (_logOnceMessages[""][realVerbosityLevel][msg])
+            if (_logOnceMessages[originName][realVerbosityLevel][msg])
                 return;
             else
-                _logOnceMessages[""][realVerbosityLevel][msg] = true;
-//            if (_logOnceMessages[originName][realVerbosityLevel][msg])
-//                return;
-//            else
-//                _logOnceMessages[originName][realVerbosityLevel][msg] = true;
+                _logOnceMessages[originName][realVerbosityLevel][msg] = true;
         }
 
         if ((scenes != nullptr) && scenes->getEventsEnabled() && VThread::isSimThread())
