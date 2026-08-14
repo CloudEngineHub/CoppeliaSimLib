@@ -1492,6 +1492,7 @@ void CShape::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
         bool createdHere = (ev == nullptr);
         if (createdHere)
             ev = App::scenes->createSceneObjectAddEvent(this);
+        std::string eventName = ev->getEventName();
         _dynMaterial->setBoolProperty(nullptr, false, ev);
         _dynMaterial->setIntProperty(nullptr, 0, ev);
         _dynMaterial->setFloatProperty(nullptr, 0.0, ev);
@@ -1524,7 +1525,10 @@ void CShape::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
         mmid.resize(all.size());
         for (size_t i = 0; i < all.size(); i++)
         {
-            all[i]->pushGenesisOrChangeEvent(_objectHandle, _objectUid, allTr[i], 0);
+            int mode = 1; // change event (refresh all)
+            if (eventName == EVENTTYPE_OBJECTADDED)
+                mode = 0; // genesis event
+            all[i]->pushGenesisOrChangeEvent(_objectHandle, _objectUid, allTr[i], mode);
             mmid[i] = all[i]->getObjectHandle();
         }
         CCbor* ev = App::scenes->createSceneObjectChangedEvent(_objectHandle, false, prop(PropShape::meshes).name, false);

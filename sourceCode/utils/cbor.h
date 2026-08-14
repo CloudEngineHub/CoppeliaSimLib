@@ -115,6 +115,7 @@ class CCbor
     void allowEventsReordering(bool allow);
     int64_t finalizeEvents(int64_t nextSeq, bool seqChanges, std::vector<SEventInf>* inf = nullptr);
     size_t getEventCnt() const;
+    std::string getEventName() const;
     size_t getEventDepth() const;
 
     void clear();

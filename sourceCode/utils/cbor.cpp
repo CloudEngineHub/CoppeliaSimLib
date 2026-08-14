@@ -970,7 +970,15 @@ int64_t CCbor::finalizeEvents(int64_t nextSeq, bool seqChanges, std::vector<SEve
 
 size_t CCbor::getEventCnt() const
 {
-    return (_eventInfos.size());
+    return _eventInfos.size();
+}
+
+std::string CCbor::getEventName() const
+{ // last created event (maybe not yet pushed)
+    std::string eventNm;
+    if (_eventInfos.size() > 0)
+        eventNm = _eventInfos[_eventInfos.size() - 1].event;
+    return eventNm;
 }
 
 void CCbor::appendKeyInt64(const char* key, int64_t v)
