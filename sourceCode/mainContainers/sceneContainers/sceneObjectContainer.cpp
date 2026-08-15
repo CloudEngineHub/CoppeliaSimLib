@@ -384,6 +384,7 @@ bool CSceneObjectContainer::eraseObjects(const std::vector<int>* objectHandles, 
                         // We announce the object will be erased:
                         App::scenes->announceObjectWillBeErased(it); // this may trigger other "interesting" things, such as customization script runs, etc.
 
+                        App::scenes->getEvents()->mark();
                         if ((it->getObjectType() == sim_sceneobject_shape) && (((CShape*)it)->getMesh() != nullptr))
                         {
                             std::vector<CMesh*> all;
@@ -397,10 +398,14 @@ bool CSceneObjectContainer::eraseObjects(const std::vector<int>* objectHandles, 
                         //    App::scenes->pushRemoveEvent((CScript*)it)->detachedScript->...;
 
                         App::scenes->pushRemoveEvent(it->getObjectHandle());
+                        App::scenes->getEvents()->popAfterMark();
                         App::scenes->disableEvents();
                         _removeObject(it);
                         App::scenes->enableEvents();
-                        pushGenesisEvents_oneObject(nullptr); // just to trigger a fresh objects, orphans, etc. properties event
+                        std::vector<unsigned char> eData;
+                        SEventInf eInfo;
+                        pushGenesisEvents_oneObject(nullptr); // just to trigger a fresh objects, orphans, etc. properties event. Do that before the remove event!
+                        App::scenes->getEvents()->repush();
                     }
                 }
 

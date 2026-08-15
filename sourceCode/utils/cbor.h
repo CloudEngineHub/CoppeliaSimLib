@@ -110,8 +110,14 @@ class CCbor
 
     void createEvent(const char* event, const char* fieldName, const char* objType, int64_t handle, int64_t uid, bool mergeable, bool openDataField = true);
     void pushEvent();
-    void popEvent(std::vector<unsigned char>& data, SEventInf& eventInfo);
-    void pushEvent(const std::vector<unsigned char>& data, const SEventInf& eventInfo);
+
+    void mark();
+    void popAfterMark();
+    void repush();
+
+ //   void popEvent(std::vector<unsigned char>& data, SEventInf& eventInfo);
+ //   void pushEvent(const std::vector<unsigned char>& data, const SEventInf& eventInfo);
+
     void allowEventsReordering(bool allow);
     int64_t finalizeEvents(int64_t nextSeq, bool seqChanges, std::vector<SEventInf>* inf = nullptr);
     size_t getEventCnt() const;
@@ -132,6 +138,7 @@ class CCbor
 
     std::vector<unsigned char> _buff;
     std::vector<std::vector<unsigned char>> _buff_forReorder;
+    std::vector<std::vector<unsigned char>> _buff_forPopRepush;
     int _options; // bit0: treat doubles as float
 
     size_t _eventDepth; // nb of array/map closes needed
@@ -140,9 +147,11 @@ class CCbor
     bool _inDataField;
     int _handleDataFieldDisableLevel;
     int _allowEventsReordering; // 0:no, 1:reorder, 2:buffer for reorder
+    int _infoIndex_forPopRepush;
 //    size_t _discardableEventCnt;
     std::vector<SEventInf> _eventInfos;
     std::vector<SEventInf> _eventInfos_forReorder;
+    std::vector<SEventInf> _eventInfos_forPopRepush;
 //    std::map<std::string, size_t> _mergeableEventIds;
     std::vector<bool> _sizedArrayInfo;
     std::set<int64_t> _createdObjects_events;

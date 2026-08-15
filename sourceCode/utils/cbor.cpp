@@ -689,7 +689,10 @@ void CCbor::clear()
     // do not clear _buff in here! _buff.clear();
     _eventInfos.clear();
     _eventInfos_forReorder.clear();
+    _eventInfos_forPopRepush.clear();
+    _infoIndex_forPopRepush = -1;
     _buff_forReorder.clear();
+    _buff_forPopRepush.clear();
     _eventDepth = 0;
     _eventOpen = false;
     _nextIsKeyInData = true;
@@ -882,6 +885,51 @@ void CCbor::pushEvent()
     */
 }
 
+void CCbor::mark()
+{
+    _infoIndex_forPopRepush = _eventInfos.size();
+}
+
+void CCbor::popAfterMark()
+{
+    _buff_forPopRepush.clear();
+    _eventInfos_forPopRepush.clear();
+    if (_infoIndex_forPopRepush < _eventInfos.size())
+    {
+        size_t start = 0;
+        while (_infoIndex_forPopRepush < _eventInfos.size())
+        {
+            size_t p = _eventInfos[_infoIndex_forPopRepush].pos;
+            if (_buff_forPopRepush.size() == 0)
+                start = p;
+            size_t s = _eventInfos[_infoIndex_forPopRepush].size;
+            _buff_forPopRepush.push_back(std::vector<unsigned char>(_buff.begin() + p, _buff.begin() + p + s));
+            _eventInfos_forPopRepush.push_back(_eventInfos[_infoIndex_forPopRepush]);
+            _eventInfos.erase(_eventInfos.begin() + _infoIndex_forPopRepush);
+        }
+        _buff.erase(_buff.begin() + start, _buff.end());
+    }
+}
+
+void CCbor::repush()
+{
+    for (size_t i = 0; i < _eventInfos_forPopRepush.size(); i++)
+    {
+        auto& delayed = _eventInfos_forPopRepush[i];
+        size_t newPos = _buff.size();
+        size_t oldPos = delayed.pos;
+        size_t delta = newPos - oldPos;
+        for (size_t& fp : delayed.fieldPositions)
+            fp += delta;
+        delayed.pos = newPos;
+        _eventInfos.push_back(delayed);
+        _buff.insert(_buff.end(), _buff_forPopRepush[i].begin(), _buff_forPopRepush[i].end());
+    }
+    _buff_forPopRepush.clear();
+    _eventInfos_forPopRepush.clear();
+}
+
+/*
 void CCbor::popEvent(std::vector<unsigned char>& data, SEventInf& eventInfo)
 {
     if (!_eventInfos.empty())
@@ -901,7 +949,7 @@ void CCbor::pushEvent(const std::vector<unsigned char>& data, const SEventInf& e
     inf->pos = _buff.size();
     _buff.insert(_buff.end(), data.begin(), data.end());
 }
-
+*/
 void CCbor::allowEventsReordering(bool allow)
 {
     if ((allow && (_allowEventsReordering == 2)) || ((!allow) && (_allowEventsReordering != 2)))
