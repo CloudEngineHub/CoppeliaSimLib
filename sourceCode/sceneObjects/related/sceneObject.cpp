@@ -1508,32 +1508,8 @@ void CSceneObject::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
         customObjectData.appendEventData(nullptr, ev);
         customObjectData_volatile.appendEventData(nullptr, ev);
 
-        std::vector<std::string> tags;
-        getReferencedHandlesTags(tags);
-        for (size_t i = 0; i < tags.size(); i++)
-        {
-            if (tags[i].size() > 0)
-            {
-                std::vector<int> handles;
-                auto it = _customReferencedHandles.find(tags[i]);
-                for (size_t j = 0; j < it->second.size(); j++)
-                    handles.push_back(it->second[j].generalObjectHandle);
-                ev->appendKeyHandleArray((REFSPREFIXDOT + tags[i]).c_str(), handles.data(), handles.size());
-            }
-        }
-        tags.clear();
-        getReferencedOriginalHandlesTags(tags);
-        for (size_t i = 0; i < tags.size(); i++)
-        {
-            if (tags[i].size() > 0)
-            {
-                std::vector<int> handles;
-                auto it = _customReferencedOriginalHandles.find(tags[i]);
-                for (size_t j = 0; j < it->second.size(); j++)
-                    handles.push_back(it->second[j].generalObjectHandle);
-                ev->appendKeyHandleArray((ORIGREFSPREFIXDOT + tags[i]).c_str(), handles.data(), handles.size());
-            }
-        }
+        _sendCustomReferenceHandleEvent(ev, false);
+        _sendCustomReferenceHandleEvent(ev, true);
 
         ev->appendKeyInt64(prop(PropSceneObject::movementOptions).name, _objectMovementOptions);
         ev->appendKeyInt64(prop(PropSceneObject::movementPreferredAxes).name, _objectMovementPreferredAxes);
@@ -1555,6 +1531,49 @@ void CSceneObject::pushNakedGenesisEvents(CCbor* ev /*= nullptr*/)
         ev->appendKeyInt32Array(prop(PropSceneObject::movementRelativity).name, _objectMovementRelativity, 2);
 
         Obj::pushNakedGenesisEvents(ev);
+        if (createdHere)
+            App::scenes->pushEvent();
+    }
+}
+
+void CSceneObject::_sendCustomReferenceHandleEvent(CCbor* ev, bool orig) const
+{
+    if (_isInScene && App::scenes->getEventsEnabled())
+    {
+        bool createdHere = (ev == nullptr);
+        if (createdHere)
+            ev = App::scenes->createSceneObjectChangedEvent(_objectHandle, true, "refs", false);
+        std::vector<std::string> tags;
+        if (orig)
+        {
+            getReferencedOriginalHandlesTags(tags);
+            for (size_t i = 0; i < tags.size(); i++)
+            {
+                if (tags[i].size() > 0)
+                {
+                    std::vector<int> handles;
+                    auto it = _customReferencedOriginalHandles.find(tags[i]);
+                    for (size_t j = 0; j < it->second.size(); j++)
+                        handles.push_back(it->second[j].generalObjectHandle);
+                    ev->appendKeyHandleArray((ORIGREFSPREFIXDOT + tags[i]).c_str(), handles.data(), handles.size());
+                }
+            }
+        }
+        else
+        {
+            getReferencedHandlesTags(tags);
+            for (size_t i = 0; i < tags.size(); i++)
+            {
+                if (tags[i].size() > 0)
+                {
+                    std::vector<int> handles;
+                    auto it = _customReferencedHandles.find(tags[i]);
+                    for (size_t j = 0; j < it->second.size(); j++)
+                        handles.push_back(it->second[j].generalObjectHandle);
+                    ev->appendKeyHandleArray((REFSPREFIXDOT + tags[i]).c_str(), handles.data(), handles.size());
+                }
+            }
+        }
         if (createdHere)
             App::scenes->pushEvent();
     }
@@ -4126,17 +4145,24 @@ void CSceneObject::announceObjectWillBeErased(const CSceneObject* object, bool c
     if (_authorizedViewableObjects == object->getObjectHandle())
         _authorizedViewableObjects = -2; // not visible anymore!
 
-    // If the object's parent will be erased, make the object child of its grand-parents
+    // If the object's parent will be erased, make the object child of its grand-parents. The object to be removed then becomes an orphan
     if (!copyBuffer)
     {
-        CSceneObject* parent = getParent();
-        if (parent != nullptr)
+        if (object == this)
+            App::scene->sceneObjects->setObjectParent(this, nullptr, true);
+        else
         {
-            if (parent == object)
-                App::scene->sceneObjects->setObjectParent(this, parent->getParent(), true);
+            CSceneObject* parent = getParent();
+            if (parent != nullptr)
+            {
+                if (parent == object)
+                    App::scene->sceneObjects->setObjectParent(this, parent->getParent(), true);
+            }
         }
-        removeChild(object);
+        //removeChild(object);
     }
+
+    bool changed = false;
     for (auto it = _customReferencedHandles.begin(); it != _customReferencedHandles.end(); ++it)
     {
         for (size_t i = 0; i < it->second.size(); i++)
@@ -4144,12 +4170,19 @@ void CSceneObject::announceObjectWillBeErased(const CSceneObject* object, bool c
             if (it->second[i].generalObjectType == sim_objecttype_sceneobject)
             {
                 if (it->second[i].generalObjectHandle == object->getObjectHandle())
+                {
                     it->second[i].generalObjectHandle = -1;
+                    changed = true;
+                }
             }
         }
     }
+    if (changed)
+        _sendCustomReferenceHandleEvent(nullptr, false);
+
     if (!copyBuffer)
     {
+        changed = false;
         for (auto it = _customReferencedOriginalHandles.begin(); it != _customReferencedOriginalHandles.end(); ++it)
         {
             for (size_t i = 0; i < it->second.size(); i++)
@@ -4161,6 +4194,8 @@ void CSceneObject::announceObjectWillBeErased(const CSceneObject* object, bool c
                 }
             }
         }
+        if (changed)
+            _sendCustomReferenceHandleEvent(nullptr, true);
     }
 }
 

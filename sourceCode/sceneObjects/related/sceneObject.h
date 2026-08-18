@@ -375,6 +375,7 @@ class CSceneObject : public Obj
     CCustomData customObjectData_volatile; // this one is not serialized (but copied)! (object-level signals)
 
   protected:
+    void _sendCustomReferenceHandleEvent(CCbor* ev, bool orig) const;
     bool _setChildren(std::vector<CSceneObject*>* children);
     void _setMeasuredVelocity(const C3Vector& lin, const C3Vector& ang, const C3Vector& rotAxis, double angle);
     void _setModelInvisible(bool inv);

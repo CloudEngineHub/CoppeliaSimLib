@@ -1187,7 +1187,7 @@ void CScene::cleanupHashNames_allObjects(int suffix)
     }
 }
 
-void CScene::announceObjectWillBeErased(const CSceneObject* object)
+void CScene::announceObjectWillBeErased(CSceneObject* object)
 {
     sceneObjects->announceObjectWillBeErased(object);
     drawingCont->announceObjectWillBeErased(object);

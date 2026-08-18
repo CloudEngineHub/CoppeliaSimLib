@@ -144,7 +144,7 @@ class CSceneObjectContainer
     void simulationAboutToEnd();
     void simulationEnded();
 
-    void announceObjectWillBeErased(const CSceneObject* object);
+    void announceObjectWillBeErased(CSceneObject* object);
     void announceScriptWillBeErased(int scriptOrDetachedScriptHandle, bool simulationScript, bool sceneSwitchPersistentScript);
 
     void handleDataCallbacks();

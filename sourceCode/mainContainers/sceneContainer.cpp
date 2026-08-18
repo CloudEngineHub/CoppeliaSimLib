@@ -857,7 +857,7 @@ void CSceneContainer::simulationEnded(bool removeNewObjects)
     calcInfo->simulationEnded();
 }
 
-void CSceneContainer::announceObjectWillBeErased(const CSceneObject* object)
+void CSceneContainer::announceObjectWillBeErased(CSceneObject* object)
 {
     scene->announceObjectWillBeErased(object);
 }

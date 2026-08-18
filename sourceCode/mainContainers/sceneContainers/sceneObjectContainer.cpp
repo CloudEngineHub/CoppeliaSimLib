@@ -97,15 +97,18 @@ void CSceneObjectContainer::sensingAboutToStart()
         getObjectFromIndex(i)->measureVelocity(dt); // adapt that func!
 }
 
-void CSceneObjectContainer::announceObjectWillBeErased(const CSceneObject* object)
+void CSceneObjectContainer::announceObjectWillBeErased(CSceneObject* object)
 {
     TRACE_INTERNAL;
     embeddedScriptContainer->announceObjectWillBeErased(object);
     for (size_t i = 0; i < getObjectCount(); i++)
     {
         CSceneObject* it = getObjectFromIndex(i);
-        it->announceObjectWillBeErased(object, false); // also send this to self
+        if (it != object)
+            it->announceObjectWillBeErased(object, false);
     }
+    object->announceObjectWillBeErased(object, false); // also send this to self, afterwards
+
 }
 
 void CSceneObjectContainer::announceScriptWillBeErased(int scriptOrDetachedScriptHandle, bool simulationScript, bool sceneSwitchPersistentScript)
@@ -381,8 +384,16 @@ bool CSceneObjectContainer::eraseObjects(const std::vector<int>* objectHandles, 
                     CSceneObject* it = toDestroyPtr[i];
                     if (it != nullptr)
                     {
+                        CCbor* ev = App::scenes->createSceneObjectChangedEvent(it, true, "BeforeEvent", false);
+                        ev->appendKeyInt64("BeforeEvent", -1);
+                        App::scenes->pushEvent();
+
                         // We announce the object will be erased:
                         App::scenes->announceObjectWillBeErased(it); // this may trigger other "interesting" things, such as customization script runs, etc.
+
+                        App::scenes->createSceneObjectChangedEvent(it, true, "AfterEvent", false);
+                        ev->appendKeyInt64("AfterEvent", -1);
+                        App::scenes->pushEvent();
 
                         App::scenes->getEvents()->mark();
                         if ((it->getObjectType() == sim_sceneobject_shape) && (((CShape*)it)->getMesh() != nullptr))
@@ -397,6 +408,7 @@ bool CSceneObjectContainer::eraseObjects(const std::vector<int>* objectHandles, 
                         //if ((it->getObjectType() == sim_sceneobject_script) && (((CScript*)it)->detachedScript != nullptr))
                         //    App::scenes->pushRemoveEvent((CScript*)it)->detachedScript->...;
 
+//                        setObjectParent(it, nullptr, true); // triggers various required events, such as childIndex in siblings, etc. This would normally happen in _removeObject
                         App::scenes->pushRemoveEvent(it->getObjectHandle());
                         App::scenes->getEvents()->popAfterMark();
                         App::scenes->disableEvents();
@@ -405,6 +417,19 @@ bool CSceneObjectContainer::eraseObjects(const std::vector<int>* objectHandles, 
                         std::vector<unsigned char> eData;
                         SEventInf eInfo;
                         pushGenesisEvents_oneObject(nullptr); // just to trigger a fresh objects, orphans, etc. properties event. Do that before the remove event!
+                        /*
+                        for (size_t i = 0; i < getOrphanCount(); i++)
+                        { // make sure to handle child order of orphans (the object to erase was first set parentless)
+                            CSceneObject* child = getOrphanFromIndex(i);
+                            if (App::scenes->getEventsEnabled())
+                            {
+                                const char* cmd = prop(PropSceneObject::childOrder).name;
+                                CCbor* ev = App::scenes->createSceneObjectChangedEvent(child, true, cmd, false);
+                                ev->appendKeyInt64(cmd, child->getChildOrder());
+                                App::scenes->pushEvent();
+                            }
+                        }
+                        */
                         App::scenes->getEvents()->repush();
                     }
                 }
@@ -761,6 +786,15 @@ void CSceneObjectContainer::pushGenesisEvents_someObjects(const std::vector<CSce
         ev->appendKeyHandleArray(prop(PropScene::orphans).name, _orphanObjects);
         ev->appendKeyHandleArray(prop(PropScene::selection).name, _selectedObjectHandles.data(), _selectedObjectHandles.size());
         App::scenes->pushEvent();
+
+        for (size_t i = 0; i < getOrphanCount(); i++)
+        {
+            CSceneObject* child = getOrphanFromIndex(i);
+            const char* cmd = prop(PropSceneObject::childOrder).name;
+            ev = App::scenes->createSceneObjectChangedEvent(child, true, cmd, false);
+            ev->appendKeyInt64(cmd, child->getChildOrder());
+            App::scenes->pushEvent();
+        }
     }
 }
 
