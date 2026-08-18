@@ -1572,6 +1572,7 @@ void CSceneObject::pushDependencyDataEvents(CCbor* ev /*= nullptr*/) const
             pH = _parentObject->getObjectHandle();
         ev->appendKeyHandle(prop(PropSceneObject::parent).name, pH);
         ev->appendKeyHandleArray(prop(PropSceneObject::children).name, _childList);
+        ev->appendKeyInt64(prop(PropSceneObject::childOrder).name, _childOrder);
         Obj::pushDependencyDataEvents(ev);
         if (createdHere)
             App::scenes->pushEvent();
